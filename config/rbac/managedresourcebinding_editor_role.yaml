@@ -1,0 +1,24 @@
+# permissions for end users to edit managedresourcebindings.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: managedresourcebinding-editor-role
+rules:
+- apiGroups:
+  - paas.il
+  resources:
+  - managedresourcebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - paas.il
+  resources:
+  - managedresourcebindings/status
+  verbs:
+  - get

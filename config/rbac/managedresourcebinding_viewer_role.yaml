@@ -1,0 +1,20 @@
+# permissions for end users to view managedresourcebindings.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: managedresourcebinding-viewer-role
+rules:
+- apiGroups:
+  - paas.il
+  resources:
+  - managedresourcebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - paas.il
+  resources:
+  - managedresourcebindings/status
+  verbs:
+  - get

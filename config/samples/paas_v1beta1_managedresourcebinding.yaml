@@ -1,0 +1,11 @@
+apiVersion: paas.il/v1beta1
+kind: ManagedResourceBinding
+metadata:
+  name: managedresourcebinding-sample
+spec:
+  objects:
+  - apiGroup: apiextensions.k8s.io
+    kind: CustomResourceDefinition
+    name: tests.example.com
+  namespaces:
+  - default
