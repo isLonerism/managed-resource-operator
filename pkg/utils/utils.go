@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"io/ioutil"
+	"net/http"
 	"reflect"
 )
 
@@ -41,7 +43,7 @@ func GetManagedResourceBytes(sourceStruct SourceStruct) ([]byte, error) {
 	sourceNames := reflect.TypeOf(sourceStruct)
 	sourceValues := reflect.ValueOf(sourceStruct)
 
-	// Interate existing source types
+	// Iterate existing source types
 	for sourceIndex := 0; sourceIndex < sourceNames.NumField(); sourceIndex++ {
 		sourceName := sourceNames.Field(sourceIndex)
 		sourceValue := sourceValues.Field(sourceIndex)
@@ -50,12 +52,25 @@ func GetManagedResourceBytes(sourceStruct SourceStruct) ([]byte, error) {
 		if sourceValue.String() != "" {
 			return sourceFunctions[sourceName.Name](sourceStruct)
 		}
-
 	}
 
 	return nil, nil
 }
 
 func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
-	return nil, nil
+
+	// Get resource yaml from remote
+	response, err := http.Get(sourceStruct.URL)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	// Read response as byte array
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }
