@@ -18,20 +18,26 @@ package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"operator/pkg/utils"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
+// ManagedResourceStruct is a reference to an object to be managed
+type ManagedResourceStruct struct {
+	APIGroup  string `json:"apiGroup"`
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace,omitempty"`
+}
 
 // ManagedResourceBindingSpec defines the desired state of ManagedResourceBinding
 type ManagedResourceBindingSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Objects    []utils.ManagedResourceStruct `json:"objects"`
-	Namespaces []string                      `json:"namespaces"`
+	Objects    []ManagedResourceStruct `json:"objects"`
+	Namespaces []string                `json:"namespaces"`
 }
 
 // ManagedResourceBindingStatus defines the observed state of ManagedResourceBinding
