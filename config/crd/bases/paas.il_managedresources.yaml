@@ -1,0 +1,77 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: managedresources.paas.il
+spec:
+  group: paas.il
+  names:
+    kind: ManagedResource
+    listKind: ManagedResourceList
+    plural: managedresources
+    singular: managedresource
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: ManagedResource is the Schema for the managedresources API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ManagedResourceSpec defines the desired state of ManagedResource
+          properties:
+            source:
+              description: SourceStruct defines options to supply the managed object
+                code
+              properties:
+                url:
+                  type: string
+              type: object
+            state:
+              type: string
+          required:
+          - source
+          - state
+          type: object
+        status:
+          description: ManagedResourceStatus defines the observed state of ManagedResource
+          properties:
+            info:
+              type: string
+            lastSuccessfulUpdate:
+              type: string
+            state:
+              type: string
+          required:
+          - info
+          - lastSuccessfulUpdate
+          - state
+          type: object
+      type: object
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

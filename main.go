@@ -28,6 +28,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	paasv1beta1 "operator/api/v1beta1"
+	"operator/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -66,6 +67,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controllers.ManagedResourceReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("ManagedResource"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "ManagedResource")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")
