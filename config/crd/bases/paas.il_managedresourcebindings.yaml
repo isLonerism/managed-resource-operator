@@ -46,7 +46,7 @@ spec:
                 description: ManagedResourceStruct is a reference to an object to
                   be managed
                 properties:
-                  apiGroup:
+                  apiVersion:
                     type: string
                   kind:
                     type: string
@@ -55,7 +55,7 @@ spec:
                   namespace:
                     type: string
                 required:
-                - apiGroup
+                - apiVersion
                 - kind
                 - name
                 type: object

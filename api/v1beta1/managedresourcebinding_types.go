@@ -25,10 +25,10 @@ import (
 
 // ManagedResourceStruct is a reference to an object to be managed
 type ManagedResourceStruct struct {
-	APIGroup  string `json:"apiGroup"`
-	Kind      string `json:"kind"`
-	Name      string `json:"name"`
-	Namespace string `json:"namespace,omitempty"`
+	APIVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Name       string `json:"name"`
+	Namespace  string `json:"namespace,omitempty"`
 }
 
 // ManagedResourceBindingSpec defines the desired state of ManagedResourceBinding
