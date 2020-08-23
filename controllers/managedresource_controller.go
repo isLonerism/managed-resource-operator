@@ -51,11 +51,19 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	_, err := utils.GetManagedResourceBytes(managedResource.Spec.Source)
+	managedResourceBytes, err := utils.GetManagedResourceBytes(managedResource.Spec.Source)
 	if err != nil {
 		log.Error(err)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
+
+	managedResourceMap, err := utils.GetManagedResourceMapFromBytes(managedResourceBytes)
+	if err != nil {
+		log.Error(err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	log.Warn(managedResourceMap)
 
 	// TODO logic
 

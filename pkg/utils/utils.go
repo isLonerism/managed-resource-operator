@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
+
+	"gopkg.in/yaml.v2"
 )
 
 // ManagedState is a custom state type for a managed resource
@@ -29,6 +31,19 @@ type ManagedResourceStruct struct {
 type SourceStruct struct {
 	URL  string `json:"url,omitempty"`
 	Lala string `json:"lala,omitempty"`
+}
+
+// ResourceMeta holds the name and namespace fields on a k8s object
+type ResourceMeta struct {
+	Name      string `yaml:"name"`
+	Namespace string `yaml:"namespace,omitempty"`
+}
+
+// Resource holds basic fields of any k8s object
+type Resource struct {
+	APIVersion string       `yaml:"apiVersion"`
+	Kind       string       `yaml:"kind"`
+	Metadata   ResourceMeta `yaml:"metadata"`
 }
 
 // A map of source types and their appropriate retrieval methods
@@ -73,4 +88,16 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+// GetManagedResourceMapFromBytes unmarshals resource bytes to a map
+func GetManagedResourceMapFromBytes(managedResourceBytes []byte) (map[string]interface{}, error) {
+
+	// Unmarshal the resource to a map
+	managedResource := map[string]interface{}{}
+	if err := yaml.Unmarshal(managedResourceBytes, &managedResource); err != nil {
+		return nil, err
+	}
+
+	return managedResource, nil
 }
