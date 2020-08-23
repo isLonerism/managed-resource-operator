@@ -20,11 +20,14 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
+	"github.com/prometheus/common/log"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	paasv1beta1 "operator/api/v1beta1"
+
+	"operator/pkg/utils"
 )
 
 // ManagedResourceReconciler reconciles a ManagedResource object
@@ -38,10 +41,25 @@ type ManagedResourceReconciler struct {
 // +kubebuilder:rbac:groups=paas.il,resources=managedresources/status,verbs=get;update;patch
 
 func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
+	ctx := context.Background()
 	_ = r.Log.WithValues("managedresource", req.NamespacedName)
 
-	// your logic here
+	// Get managed resource
+	managedResource := &paasv1beta1.ManagedResource{}
+	if err := r.Get(ctx, req.NamespacedName, managedResource); err != nil {
+		log.Error(err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// TODO logic
+
+	// Deny management of a resource
+	managedResource.Status.State = utils.StateDenied
+	managedResource.Status.Info = "No matching ManagedResourceBindings were found"
+	if err := r.Status().Update(ctx, managedResource); err != nil {
+		log.Error(err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
 	return ctrl.Result{}, nil
 }
