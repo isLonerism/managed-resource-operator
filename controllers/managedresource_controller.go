@@ -51,6 +51,12 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	_, err := utils.GetManagedResourceBytes(managedResource.Spec.Source)
+	if err != nil {
+		log.Error(err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
 	// TODO logic
 
 	// Deny management of a resource
