@@ -44,20 +44,15 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	ctx := context.Background()
 	_ = r.Log.WithValues("managedresource", req.NamespacedName)
 
-	// Get managed resource
+	// Get managed resource k8s object
 	managedResource := &paasv1beta1.ManagedResource{}
 	if err := r.Get(ctx, req.NamespacedName, managedResource); err != nil {
 		log.Error(err)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	managedResourceBytes, err := utils.GetManagedResourceBytes(managedResource.Spec.Source)
-	if err != nil {
-		log.Error(err)
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
-
-	managedResourceMap, err := utils.GetManagedResourceMapFromBytes(managedResourceBytes)
+	// Get managed resource map
+	managedResourceMap, err := utils.GetManagedResourceMap(managedResource.Spec.Source)
 	if err != nil {
 		log.Error(err)
 		return ctrl.Result{}, client.IgnoreNotFound(err)

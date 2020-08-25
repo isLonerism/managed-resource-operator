@@ -40,8 +40,6 @@ spec:
               description: SourceStruct defines options to supply the managed object
                 code
               properties:
-                lala:
-                  type: string
                 url:
                   type: string
               type: object
