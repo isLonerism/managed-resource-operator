@@ -70,8 +70,6 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	r.Client.Create(nil, nil, &client.CreateOptions{})
-
 	// Deny management of a resource
 	managedResource.Status.State = utils.StateEnabled
 	managedResource.Status.Info = "Managing resource"
