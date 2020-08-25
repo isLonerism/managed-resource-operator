@@ -25,6 +25,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
+
 	paasv1beta1 "operator/api/v1beta1"
 
 	"operator/pkg/utils"
@@ -58,13 +61,20 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log.Warn(string(managedResourceBytes))
+	// Parse yaml bytes to runtime object
+	obj, _, _ := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme).Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
 
-	// TODO logic
+	// Create object within the cluster
+	if err := r.Client.Create(ctx, obj); err != nil {
+		log.Error(err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	r.Client.Create(nil, nil, &client.CreateOptions{})
 
 	// Deny management of a resource
-	managedResource.Status.State = utils.StateDenied
-	managedResource.Status.Info = "No matching ManagedResourceBindings were found"
+	managedResource.Status.State = utils.StateEnabled
+	managedResource.Status.Info = "Managing resource"
 	if err := r.Status().Update(ctx, managedResource); err != nil {
 		log.Error(err)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
