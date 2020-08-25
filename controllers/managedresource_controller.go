@@ -64,10 +64,31 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	// Parse yaml bytes to runtime object
 	obj, _, _ := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme).Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
 
-	// Create object within the cluster
-	if err := r.Client.Create(ctx, obj); err != nil {
+	// Get managed resource object key
+	key, err := client.ObjectKeyFromObject(obj)
+	if err != nil {
 		log.Error(err)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	// Try getting object from cluster
+	clusterObj := obj.DeepCopyObject()
+	if err = r.Client.Get(ctx, key, clusterObj); err != nil {
+
+		// Create the managed resource
+		if err := r.Client.Create(ctx, obj); err != nil {
+			log.Error(err)
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+
+	} else {
+
+		// Update the managed resource
+		if err := r.Client.Update(ctx, obj); err != nil {
+			log.Error(err)
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+
 	}
 
 	// Deny management of a resource
