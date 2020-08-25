@@ -40,7 +40,6 @@ func GetManagedResourceBytes(sourceStruct SourceStruct) ([]byte, error) {
 
 	// Init resource bytes
 	var managedResourceBytes []byte
-	var err error
 
 	// Store all names and values of source types
 	sourceNames := reflect.TypeOf(sourceStruct)
@@ -53,7 +52,7 @@ func GetManagedResourceBytes(sourceStruct SourceStruct) ([]byte, error) {
 
 		// Find the defined source type and call the appropriate method
 		if sourceValue.String() != "" {
-			managedResourceBytes, err = sourceFunctions[sourceName.Name](sourceStruct)
+			managedResourceBytes, err := sourceFunctions[sourceName.Name](sourceStruct)
 			if err != nil {
 				return nil, err
 			}
