@@ -13,7 +13,7 @@ type ManagedState string
 const (
 	StateEnabled  = "Enabled"
 	StateDisabled = "Disabled"
-	StateDenied   = "Denied"
+	StatePending  = "Pending"
 	StateError    = "Error"
 )
 
