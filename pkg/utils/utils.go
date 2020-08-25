@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
-
-	"gopkg.in/yaml.v2"
 )
 
 // ManagedState is a custom state type for a managed resource
@@ -37,8 +35,8 @@ var sourceFunctions = map[string]func(SourceStruct) ([]byte, error){
 	"URL": getManagedResourceBytesByURL,
 }
 
-// GetManagedResourceMap returns the managed object yaml as a map
-func GetManagedResourceMap(sourceStruct SourceStruct) (map[string]interface{}, error) {
+// GetManagedResourceBytes returns the managed object yaml as bytes
+func GetManagedResourceBytes(sourceStruct SourceStruct) ([]byte, error) {
 
 	// Init resource bytes
 	var managedResourceBytes []byte
@@ -59,16 +57,11 @@ func GetManagedResourceMap(sourceStruct SourceStruct) (map[string]interface{}, e
 			if err != nil {
 				return nil, err
 			}
+			return managedResourceBytes, nil
 		}
 	}
 
-	// Unmarshal the resource to a map
-	managedResourceMap := map[string]interface{}{}
-	if err = yaml.Unmarshal(managedResourceBytes, &managedResourceMap); err != nil {
-		return nil, err
-	}
-
-	return managedResourceMap, nil
+	return nil, nil
 }
 
 func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {

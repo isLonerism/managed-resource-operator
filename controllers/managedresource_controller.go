@@ -51,14 +51,14 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Get managed resource map
-	managedResourceMap, err := utils.GetManagedResourceMap(managedResource.Spec.Source)
+	// Get managed resource bytes
+	managedResourceBytes, err := utils.GetManagedResourceBytes(managedResource.Spec.Source)
 	if err != nil {
 		log.Error(err)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log.Warn(managedResourceMap)
+	log.Warn(string(managedResourceBytes))
 
 	// TODO logic
 
