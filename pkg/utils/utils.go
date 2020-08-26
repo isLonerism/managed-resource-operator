@@ -1,9 +1,17 @@
 package utils
 
 import (
+	"bytes"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
+
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
+	kubeyaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
+
+	"gopkg.in/yaml.v2"
 )
 
 // ManagedState is a custom state type for a managed resource
@@ -16,6 +24,8 @@ const (
 	StatePending  = "Pending"
 	StateError    = "Error"
 )
+
+var ObjectSerializer = kubeyaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 
 // ManagedResourceStruct is a reference to an object to be managed
 type ManagedResourceStruct struct {
@@ -79,4 +89,47 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+// CopyResourceVersion returns a new managed object with a .metadata.resourceVersion field taken from source object
+func CopyResourceVersion(sourceObject runtime.Object, destObject runtime.Object) (runtime.Object, error) {
+
+	var sourceObjectBytes bytes.Buffer
+	var destObjectBytes bytes.Buffer
+
+	// Encode runtime objects to byte streams
+	if err := ObjectSerializer.Encode(sourceObject, io.Writer(&sourceObjectBytes)); err != nil {
+		return nil, err
+	}
+	if err := ObjectSerializer.Encode(destObject, io.Writer(&destObjectBytes)); err != nil {
+		return nil, err
+	}
+
+	sourceObjectMap := make(map[string]interface{})
+	destObjectMap := make(map[string]interface{})
+
+	// Unmarshal byte streams to maps
+	if err := yaml.Unmarshal(sourceObjectBytes.Bytes(), sourceObjectMap); err != nil {
+		return nil, err
+	}
+	if err := yaml.Unmarshal(destObjectBytes.Bytes(), destObjectMap); err != nil {
+		return nil, err
+	}
+
+	// Insert resourceVersion field into new object
+	destObjectMap["metadata"].(map[interface{}]interface{})["resourceVersion"] = sourceObjectMap["metadata"].(map[interface{}]interface{})["resourceVersion"]
+
+	// Marshal new object to bytes
+	updatedObjectBytes, err := yaml.Marshal(destObjectMap)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create an updated runtime object
+	updatedObject, _, err := ObjectSerializer.Decode(updatedObjectBytes, nil, &unstructured.Unstructured{})
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedObject, nil
 }

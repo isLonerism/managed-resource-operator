@@ -26,7 +26,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 
 	paasv1beta1 "operator/api/v1beta1"
 
@@ -61,30 +60,41 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Parse yaml bytes to runtime object
-	obj, _, _ := yaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme).Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
+	// Decode managed resource bytes to runtime object
+	managedObject, _, err := utils.ObjectSerializer.Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
+	if err != nil {
+		log.Error(err)
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
 	// Get managed resource object key
-	key, err := client.ObjectKeyFromObject(obj)
+	managedObjectKey, err := client.ObjectKeyFromObject(managedObject)
 	if err != nil {
 		log.Error(err)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Try getting object from cluster
-	clusterObj := obj.DeepCopyObject()
-	if err = r.Client.Get(ctx, key, clusterObj); err != nil {
+	clusterObject := managedObject.DeepCopyObject()
+	if err = r.Client.Get(ctx, managedObjectKey, clusterObject); err != nil {
 
 		// Create the managed resource
-		if err := r.Client.Create(ctx, obj); err != nil {
+		if err := r.Client.Create(ctx, managedObject); err != nil {
 			log.Error(err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
 
 	} else {
 
+		// Insert .metadata.resourceVersion field into managed object
+		updatedObject, err := utils.CopyResourceVersion(clusterObject, managedObject)
+		if err != nil {
+			log.Error(err)
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+
 		// Update the managed resource
-		if err := r.Client.Update(ctx, obj); err != nil {
+		if err := r.Client.Update(ctx, updatedObject); err != nil { // managedObject
 			log.Error(err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
