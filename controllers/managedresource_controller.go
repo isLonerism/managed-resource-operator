@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/prometheus/common/log"
@@ -43,6 +44,24 @@ type ManagedResourceReconciler struct {
 // +kubebuilder:rbac:groups=paas.il,resources=managedresources,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=paas.il,resources=managedresources/status,verbs=get;update;patch
 
+func finishReconciliation(result ctrl.Result, err error, managedResource *paasv1beta1.ManagedResource, r *ManagedResourceReconciler) (ctrl.Result, error) {
+	if err != nil {
+		(*managedResource).Status.State = utils.StateError
+		(*managedResource).Status.Info = err.Error()
+	} else {
+		(*managedResource).Status.State = utils.StateManaged
+		(*managedResource).Status.Info = "Managing resource"
+		(*managedResource).Status.LastSuccessfulUpdate = time.Now().Format(time.RFC3339)
+	}
+
+	if err := r.Status().Update(context.Background(), managedResource); err != nil {
+		log.Error(err)
+		return ctrl.Result{}, err
+	}
+
+	return result, nil
+}
+
 func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	_ = r.Log.WithValues("managedresource", req.NamespacedName)
@@ -51,28 +70,28 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	managedResource := &paasv1beta1.ManagedResource{}
 	if err := r.Get(ctx, req.NamespacedName, managedResource); err != nil {
 		log.Error(err)
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 	}
 
 	// Get managed resource bytes
 	managedResourceBytes, err := utils.GetManagedResourceBytes(managedResource.Spec.Source)
 	if err != nil {
 		log.Error(err)
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 	}
 
 	// Decode managed resource bytes to runtime object
 	managedObject, _, err := utils.ObjectSerializer.Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
 	if err != nil {
 		log.Error(err)
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 	}
 
 	// Get managed resource object key
 	managedObjectKey, err := client.ObjectKeyFromObject(managedObject)
 	if err != nil {
 		log.Error(err)
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 	}
 
 	// Try getting object from cluster
@@ -84,12 +103,12 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 			// Create the managed resource
 			if err := r.Client.Create(ctx, managedObject); err != nil {
 				log.Error(err)
-				return ctrl.Result{}, client.IgnoreNotFound(err)
+				return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 			}
 
 		} else {
 			log.Error(err)
-			return ctrl.Result{}, client.IgnoreNotFound(err)
+			return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 		}
 
 	} else {
@@ -97,25 +116,17 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		// Insert .metadata.resourceVersion field into managed object
 		if err := utils.CopyResourceVersion(clusterObject, &managedObject); err != nil {
 			log.Error(err)
-			return ctrl.Result{}, client.IgnoreNotFound(err)
+			return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 		}
 
 		// Update the managed resource
 		if err := r.Client.Update(ctx, managedObject); err != nil {
 			log.Error(err)
-			return ctrl.Result{}, client.IgnoreNotFound(err)
+			return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 		}
 	}
 
-	// Allow management of a resource
-	managedResource.Status.State = utils.StateEnabled
-	managedResource.Status.Info = "Managing resource"
-	if err := r.Status().Update(ctx, managedResource); err != nil {
-		log.Error(err)
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
-
-	return ctrl.Result{}, nil
+	return finishReconciliation(ctrl.Result{}, nil, managedResource, r)
 }
 
 func (r *ManagedResourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
