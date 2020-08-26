@@ -62,6 +62,7 @@ func finishReconciliation(result ctrl.Result, err error, managedResource *paasv1
 	return result, nil
 }
 
+// Reconcile reconciles a received resource
 func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	_ = r.Log.WithValues("managedresource", req.NamespacedName)
@@ -129,6 +130,7 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	return finishReconciliation(ctrl.Result{}, nil, managedResource, r)
 }
 
+// SetupWithManager registers controller with the manager
 func (r *ManagedResourceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&paasv1beta1.ManagedResource{}).
