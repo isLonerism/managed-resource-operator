@@ -25,6 +25,7 @@ const (
 	StateError    = "Error"
 )
 
+// ObjectSerializer is a runtime object/byte stream codec
 var ObjectSerializer = kubeyaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 
 // ManagedResourceStruct is a reference to an object to be managed
