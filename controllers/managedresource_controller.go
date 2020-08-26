@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/prometheus/common/log"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -78,8 +79,15 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	clusterObject := managedObject.DeepCopyObject()
 	if err = r.Client.Get(ctx, managedObjectKey, clusterObject); err != nil {
 
-		// Create the managed resource
-		if err := r.Client.Create(ctx, managedObject); err != nil {
+		if apierrors.IsNotFound(err) {
+
+			// Create the managed resource
+			if err := r.Client.Create(ctx, managedObject); err != nil {
+				log.Error(err)
+				return ctrl.Result{}, client.IgnoreNotFound(err)
+			}
+
+		} else {
 			log.Error(err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
@@ -97,10 +105,9 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 			log.Error(err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
-
 	}
 
-	// Deny management of a resource
+	// Allow management of a resource
 	managedResource.Status.State = utils.StateEnabled
 	managedResource.Status.Info = "Managing resource"
 	if err := r.Status().Update(ctx, managedResource); err != nil {
