@@ -91,18 +91,18 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 	return body, nil
 }
 
-// CopyResourceVersion returns a new managed object with a .metadata.resourceVersion field taken from source object
-func CopyResourceVersion(sourceObject runtime.Object, destObject runtime.Object) (runtime.Object, error) {
+// CopyResourceVersion inserts the .metadata.resourceVersion field taken from source object to dest object
+func CopyResourceVersion(sourceObject runtime.Object, destObject *runtime.Object) error {
 
 	var sourceObjectBytes bytes.Buffer
 	var destObjectBytes bytes.Buffer
 
 	// Encode runtime objects to byte streams
 	if err := ObjectSerializer.Encode(sourceObject, io.Writer(&sourceObjectBytes)); err != nil {
-		return nil, err
+		return err
 	}
-	if err := ObjectSerializer.Encode(destObject, io.Writer(&destObjectBytes)); err != nil {
-		return nil, err
+	if err := ObjectSerializer.Encode(*destObject, io.Writer(&destObjectBytes)); err != nil {
+		return err
 	}
 
 	sourceObjectMap := make(map[string]interface{})
@@ -110,10 +110,10 @@ func CopyResourceVersion(sourceObject runtime.Object, destObject runtime.Object)
 
 	// Unmarshal byte streams to maps
 	if err := yaml.Unmarshal(sourceObjectBytes.Bytes(), sourceObjectMap); err != nil {
-		return nil, err
+		return err
 	}
 	if err := yaml.Unmarshal(destObjectBytes.Bytes(), destObjectMap); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Insert resourceVersion field into new object
@@ -122,14 +122,14 @@ func CopyResourceVersion(sourceObject runtime.Object, destObject runtime.Object)
 	// Marshal new object to bytes
 	updatedObjectBytes, err := yaml.Marshal(destObjectMap)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Create an updated runtime object
-	updatedObject, _, err := ObjectSerializer.Decode(updatedObjectBytes, nil, &unstructured.Unstructured{})
+	(*destObject), _, err = ObjectSerializer.Decode(updatedObjectBytes, nil, &unstructured.Unstructured{})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return updatedObject, nil
+	return nil
 }

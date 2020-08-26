@@ -87,14 +87,13 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	} else {
 
 		// Insert .metadata.resourceVersion field into managed object
-		updatedObject, err := utils.CopyResourceVersion(clusterObject, managedObject)
-		if err != nil {
+		if err := utils.CopyResourceVersion(clusterObject, &managedObject); err != nil {
 			log.Error(err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
 
 		// Update the managed resource
-		if err := r.Client.Update(ctx, updatedObject); err != nil { // managedObject
+		if err := r.Client.Update(ctx, managedObject); err != nil {
 			log.Error(err)
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
