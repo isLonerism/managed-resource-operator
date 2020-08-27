@@ -55,7 +55,7 @@ func finishReconciliation(result ctrl.Result, err error, managedResource *paasv1
 		(*managedResource).Status.LastSuccessfulUpdate = time.Now().Format(time.RFC3339)
 	}
 
-	if err := r.Status().Update(context.Background(), managedResource); err != nil {
+	if err := r.Update(context.Background(), managedResource); err != nil {
 		log.Error(err)
 		return ctrl.Result{}, err
 	}
@@ -71,8 +71,10 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	// Get managed resource k8s object
 	managedResource := &paasv1beta1.ManagedResource{}
 	if err := r.Get(ctx, req.NamespacedName, managedResource); err != nil {
-		log.Error(err)
-		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
+		if !apierrors.IsNotFound(err) {
+			log.Error(err)
+		}
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Get managed resource bytes
@@ -88,6 +90,30 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		log.Error(err)
 		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 	}
+
+	managedObjectFinalizer := "managedobject.finalizers.managedresources.paas.il"
+
+	// Delete the managed resource if its CR is being deleted
+	if !managedResource.DeletionTimestamp.IsZero() && controllerutil.ContainsFinalizer(managedResource, managedObjectFinalizer) {
+		controllerutil.RemoveFinalizer(managedResource, managedObjectFinalizer)
+
+		// Delete resource
+		if err := r.Client.Delete(ctx, managedObject); err != nil {
+			log.Error(err)
+			return ctrl.Result{}, err
+		}
+
+		// Update finalizers field
+		if err := r.Client.Update(ctx, managedResource); err != nil {
+			log.Error(err)
+			return ctrl.Result{}, err
+		}
+
+		return ctrl.Result{}, nil
+	}
+
+	// Add finalizer for managed resource
+	controllerutil.AddFinalizer(managedResource, managedObjectFinalizer)
 
 	// Get managed resource object key
 	managedObjectKey, err := client.ObjectKeyFromObject(managedObject)
