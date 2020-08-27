@@ -38,6 +38,9 @@ type SourceStruct struct {
 	URL string `json:"url,omitempty"`
 }
 
+// ResourceOwnerAnnotation is an identifier of resource manager
+var ResourceOwnerAnnotation = "managedresources.paas.il/owner"
+
 // A map of source types and their appropriate retrieval methods
 var sourceFunctions = map[string]func(SourceStruct) ([]byte, error){
 	"URL": getManagedResourceBytesByURL,
