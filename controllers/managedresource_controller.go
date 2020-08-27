@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -86,14 +87,16 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	managedResourceBytes, err := utils.GetManagedResourceBytes(managedResource.Spec.Source)
 	if err != nil {
 		log.Error(err)
-		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
+		return finishReconciliation(ctrl.Result{},
+			errors.New("an error occured while trying to read the source: "+err.Error()), managedResource, r)
 	}
 
 	// Decode managed resource bytes to runtime object
 	managedObject, _, err := utils.ObjectSerializer.Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
 	if err != nil {
 		log.Error(err)
-		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
+		return finishReconciliation(ctrl.Result{},
+			errors.New("an error occured while trying to unmarshal object yaml: "+err.Error()), managedResource, r)
 	}
 
 	managedObjectFinalizer := "managedobject.finalizers.managedresources.paas.il"
@@ -129,7 +132,8 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	managedObjectKey, err := client.ObjectKeyFromObject(managedObject)
 	if err != nil {
 		log.Error(err)
-		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
+		return finishReconciliation(ctrl.Result{},
+			errors.New("an error occured while trying to get object key: "+err.Error()), managedResource, r)
 	}
 
 	// Try getting object from cluster
@@ -141,12 +145,13 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 			// Create the managed resource
 			if err := r.Client.Create(ctx, managedObject); err != nil {
 				log.Error(err)
-				return finishReconciliation(ctrl.Result{}, err, managedResource, r)
+				return finishReconciliation(ctrl.Result{},
+					errors.New("an error occured while trying to create the object: "+err.Error()), managedResource, r)
 			}
 
 		} else {
 			log.Error(err)
-			return finishReconciliation(ctrl.Result{}, err, managedResource, r)
+			return ctrl.Result{}, err
 		}
 
 	} else {
@@ -157,7 +162,8 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		// Update the managed resource
 		if err := r.Client.Update(ctx, managedObject); err != nil {
 			log.Error(err)
-			return finishReconciliation(ctrl.Result{}, err, managedResource, r)
+			return finishReconciliation(ctrl.Result{},
+				errors.New("an error occured while trying to update the object: "+err.Error()), managedResource, r)
 		}
 	}
 
