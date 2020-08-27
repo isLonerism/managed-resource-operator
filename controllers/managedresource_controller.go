@@ -115,6 +115,11 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	// Add finalizer for managed resource
 	controllerutil.AddFinalizer(managedResource, managedObjectFinalizer)
 
+	// Annotate managed resource with its owner namespace
+	managedResourceAnnotations := managedObject.(controllerutil.Object).GetAnnotations()
+	managedResourceAnnotations["managedresources.paas.il/owner"] = req.NamespacedName.String()
+	managedObject.(controllerutil.Object).SetAnnotations(managedResourceAnnotations)
+
 	// Get managed resource object key
 	managedObjectKey, err := client.ObjectKeyFromObject(managedObject)
 	if err != nil {
