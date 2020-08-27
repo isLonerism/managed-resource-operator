@@ -55,6 +55,11 @@ func finishReconciliation(result ctrl.Result, err error, managedResource *paasv1
 		(*managedResource).Status.LastSuccessfulUpdate = time.Now().Format(time.RFC3339)
 	}
 
+	if err := r.Status().Update(context.Background(), managedResource); err != nil {
+		log.Error(err)
+		return ctrl.Result{}, err
+	}
+
 	if err := r.Update(context.Background(), managedResource); err != nil {
 		log.Error(err)
 		return ctrl.Result{}, err

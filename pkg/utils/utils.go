@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"time"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	kubeyaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
@@ -70,17 +72,24 @@ func GetManagedResourceBytes(sourceStruct SourceStruct) ([]byte, error) {
 
 func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 
+	// HTTP client with timeout
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
 	// Get resource yaml from remote
-	response, err := http.Get(sourceStruct.URL)
+	response, err := client.Get(sourceStruct.URL)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("an error occured while querying " + sourceStruct.URL + ": " + err.Error())
+	} else if response.StatusCode != 200 {
+		return nil, errors.New("an error occured while querying " + sourceStruct.URL + ": " + response.Status)
 	}
 	defer response.Body.Close()
 
 	// Read response as byte array
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("an error occured while reading response from " + sourceStruct.URL + ": " + err.Error())
 	}
 
 	return body, nil
