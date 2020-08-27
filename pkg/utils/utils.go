@@ -1,17 +1,12 @@
 package utils
 
 import (
-	"bytes"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
 	kubeyaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
-
-	"gopkg.in/yaml.v2"
 )
 
 // ManagedState is a custom state type for a managed resource
@@ -89,47 +84,4 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 	}
 
 	return body, nil
-}
-
-// CopyResourceVersion inserts the .metadata.resourceVersion field taken from source object to dest object
-func CopyResourceVersion(sourceObject runtime.Object, destObject *runtime.Object) error {
-
-	var sourceObjectBytes bytes.Buffer
-	var destObjectBytes bytes.Buffer
-
-	// Encode runtime objects to byte streams
-	if err := ObjectSerializer.Encode(sourceObject, io.Writer(&sourceObjectBytes)); err != nil {
-		return err
-	}
-	if err := ObjectSerializer.Encode(*destObject, io.Writer(&destObjectBytes)); err != nil {
-		return err
-	}
-
-	sourceObjectMap := make(map[string]interface{})
-	destObjectMap := make(map[string]interface{})
-
-	// Unmarshal byte streams to maps
-	if err := yaml.Unmarshal(sourceObjectBytes.Bytes(), sourceObjectMap); err != nil {
-		return err
-	}
-	if err := yaml.Unmarshal(destObjectBytes.Bytes(), destObjectMap); err != nil {
-		return err
-	}
-
-	// Insert resourceVersion field into new object
-	destObjectMap["metadata"].(map[interface{}]interface{})["resourceVersion"] = sourceObjectMap["metadata"].(map[interface{}]interface{})["resourceVersion"]
-
-	// Marshal new object to bytes
-	updatedObjectBytes, err := yaml.Marshal(destObjectMap)
-	if err != nil {
-		return err
-	}
-
-	// Create an updated runtime object
-	(*destObject), _, err = ObjectSerializer.Decode(updatedObjectBytes, nil, &unstructured.Unstructured{})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

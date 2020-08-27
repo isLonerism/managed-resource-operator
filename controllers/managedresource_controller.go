@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -115,10 +116,7 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	} else {
 
 		// Insert .metadata.resourceVersion field into managed object
-		if err := utils.CopyResourceVersion(clusterObject, &managedObject); err != nil {
-			log.Error(err)
-			return finishReconciliation(ctrl.Result{}, err, managedResource, r)
-		}
+		managedObject.(controllerutil.Object).SetResourceVersion(clusterObject.(controllerutil.Object).GetResourceVersion())
 
 		// Update the managed resource
 		if err := r.Client.Update(ctx, managedObject); err != nil {
