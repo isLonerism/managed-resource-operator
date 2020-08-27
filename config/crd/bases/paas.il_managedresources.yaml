@@ -36,6 +36,8 @@ spec:
         spec:
           description: ManagedResourceSpec defines the desired state of ManagedResource
           properties:
+            manage:
+              type: boolean
             source:
               description: SourceStruct defines options to supply the managed object
                 code
@@ -43,12 +45,9 @@ spec:
                 url:
                   type: string
               type: object
-            state:
-              description: ManagedState is a custom state type for a managed resource
-              type: string
           required:
+          - manage
           - source
-          - state
           type: object
         status:
           description: ManagedResourceStatus defines the observed state of ManagedResource

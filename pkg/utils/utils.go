@@ -16,9 +16,10 @@ type ManagedState string
 
 // Valid states for a managed resource
 const (
-	StateManaged = "Managed"
-	StatePending = "Pending"
-	StateError   = "Error"
+	StateManaged    = "Managed"
+	StateNotManaged = "Not Managed"
+	StatePending    = "Pending"
+	StateError      = "Error"
 )
 
 // ObjectSerializer is a runtime object/byte stream codec

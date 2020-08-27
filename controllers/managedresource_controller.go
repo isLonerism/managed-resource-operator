@@ -51,9 +51,16 @@ func finishReconciliation(result ctrl.Result, err error, managedResource *paasv1
 		(*managedResource).Status.State = utils.StateError
 		(*managedResource).Status.Info = err.Error()
 	} else {
-		(*managedResource).Status.State = utils.StateManaged
-		(*managedResource).Status.Info = "Managing resource"
-		(*managedResource).Status.LastSuccessfulUpdate = time.Now().Format(time.RFC3339)
+
+		// Update status accordingly
+		if (*managedResource).Spec.Manage {
+			(*managedResource).Status.State = utils.StateManaged
+			(*managedResource).Status.Info = "Managing resource"
+			(*managedResource).Status.LastSuccessfulUpdate = time.Now().Format(time.RFC3339)
+		} else {
+			(*managedResource).Status.State = utils.StateNotManaged
+			(*managedResource).Status.Info = "Managing is paused"
+		}
 	}
 
 	if err := r.Status().Update(context.Background(), managedResource); err != nil {
@@ -154,7 +161,7 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 			return ctrl.Result{}, err
 		}
 
-	} else {
+	} else if managedResource.Spec.Manage {
 
 		// Insert .metadata.resourceVersion field into managed object
 		managedObject.(controllerutil.Object).SetResourceVersion(clusterObject.(controllerutil.Object).GetResourceVersion())

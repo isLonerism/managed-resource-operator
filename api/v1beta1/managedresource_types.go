@@ -31,7 +31,7 @@ type ManagedResourceSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	Source utils.SourceStruct `json:"source"`
-	State  utils.ManagedState `json:"state"`
+	Manage bool               `json:"manage"`
 }
 
 // ManagedResourceStatus defines the observed state of ManagedResource
