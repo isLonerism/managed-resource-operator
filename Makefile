@@ -12,7 +12,7 @@ endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= docker.io/vladpbr/mro:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true"
 
@@ -72,6 +72,11 @@ docker-build: test
 
 # Push the docker image
 docker-push:
+	docker push ${IMG}
+
+# Build and push in one go
+build-push:
+	docker build . -t ${IMG}
 	docker push ${IMG}
 
 # find or download controller-gen
