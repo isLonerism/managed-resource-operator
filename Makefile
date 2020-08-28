@@ -79,6 +79,10 @@ build-push:
 	docker build . -t ${IMG}
 	docker push ${IMG}
 
+# generate certificates for webhooks
+certs:
+	./cert/generate.sh
+
 # find or download controller-gen
 # download controller-gen if necessary
 controller-gen:
