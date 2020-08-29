@@ -21,6 +21,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+
+	"operator/pkg/utils"
 )
 
 // log is for logging in this package.
@@ -42,7 +44,16 @@ var _ webhook.Defaulter = &ManagedResource{}
 func (r *ManagedResource) Default() {
 	managedresourcelog.Info("default", "name", r.Name)
 
-	// TODO(user): fill in your defaulting logic.
+	// Get managed resource bytes
+	managedResourceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
+	if err != nil || (err == nil && managedResourceBytes == nil) {
+		return
+	}
+
+	// New source struct with only the YAML field defined
+	r.Spec.Source = utils.SourceStruct{
+		YAML: string(managedResourceBytes),
+	}
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.

@@ -35,7 +35,8 @@ type ManagedResourceStruct struct {
 
 // SourceStruct defines options to supply the managed object code
 type SourceStruct struct {
-	URL string `json:"url,omitempty"`
+	URL  string `json:"url,omitempty"`
+	YAML string `json:"yaml,omitempty"`
 }
 
 // ResourceOwnerAnnotation is an identifier of resource manager
@@ -43,7 +44,8 @@ var ResourceOwnerAnnotation = "managedresources.paas.il/owner"
 
 // A map of source types and their appropriate retrieval methods
 var sourceFunctions = map[string]func(SourceStruct) ([]byte, error){
-	"URL": getManagedResourceBytesByURL,
+	"URL":  getManagedResourceBytesByURL,
+	"YAML": getManagedResourceBytesByYAML,
 }
 
 // GetManagedResourceBytes returns the managed object yaml as bytes
@@ -97,4 +99,8 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+func getManagedResourceBytesByYAML(sourceStruct SourceStruct) ([]byte, error) {
+	return []byte(sourceStruct.YAML), nil
 }

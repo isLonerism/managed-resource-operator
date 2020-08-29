@@ -44,6 +44,8 @@ spec:
               properties:
                 url:
                   type: string
+                yaml:
+                  type: string
               type: object
           required:
           - manage
