@@ -1,22 +1,22 @@
 #!/bin/bash
 
 # ensure certificate directory
-mkdir -p /tmp/k8s-webhook-server/serving-certs
-rm -rf /tmp/k8s-webhook-server/serving-certs/*
+mkdir -p config/webhook/certs
+rm -rf config/webhook/certs/*
 
 # generate request and key
 openssl req -nodes -newkey rsa:2048 \
--keyout /tmp/k8s-webhook-server/serving-certs/tls.key \
--out /tmp/k8s-webhook-server/serving-certs/tls.csr \
+-keyout config/webhook/certs/tls.key \
+-out config/webhook/certs/tls.csr \
 -config ./cert/req.conf
 
 # create k8s request
-CSR_BASE64=$(cat /tmp/k8s-webhook-server/serving-certs/tls.csr | base64 -w0)
+CSR_BASE64=$(cat config/webhook/certs/tls.csr | base64 -w0)
 CSR_REQUEST="\
 apiVersion: certificates.k8s.io/v1beta1\n\
 kind: CertificateSigningRequest\n\
 metadata:\n\
-  name: managed-resource-operator-webhook-service.managed-resource-operator-system\n\
+  name: managed-resource-webhooks\n\
 spec:\n\
   groups:\n\
   - system:authenticated\n\
@@ -27,16 +27,19 @@ spec:\n\
   - server auth\n"
 
 # sign the request
-kubectl delete csr managed-resource-operator-webhook-service.managed-resource-operator-system
+kubectl delete csr managed-resource-webhooks 2> /dev/null
 echo -ne $CSR_REQUEST | kubectl create -f -
-kubectl certificate approve managed-resource-operator-webhook-service.managed-resource-operator-system
+kubectl certificate approve managed-resource-webhooks
+
+# await certificate approval
+while [ "$(kubectl get csr managed-resource-webhooks -o jsonpath='{.status.certificate}' | base64 --decode | tee config/webhook/certs/tls.crt)" == "" ]
+do
+  sleep 1
+done
 
 # write signed certificate to certificate directory
-kubectl get csr managed-resource-operator-webhook-service.managed-resource-operator-system -o jsonpath='{.status.certificate}' | \
-base64 --decode > /tmp/k8s-webhook-server/serving-certs/tls.crt
+kubectl get csr managed-resource-webhooks -o jsonpath='{.status.certificate}' | \
+base64 --decode > config/webhook/certs/tls.crt
 
-# create secret for deployment in cluster (TODO add to kustomize)
-kubectl create secret tls webhook-server-cert \
---key=/tmp/k8s-webhook-server/serving-certs/tls.key \
---cert=/tmp/k8s-webhook-server/serving-certs/tls.crt \
---dry-run -o yaml | kubectl -n managed-resource-operator-system apply -f -
+# store cluster ca certificate
+kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 -w0 > config/webhook/certs/ca.pem.b64
