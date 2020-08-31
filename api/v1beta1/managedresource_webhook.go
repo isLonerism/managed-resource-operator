@@ -72,13 +72,24 @@ var _ webhook.Validator = &ManagedResource{}
 func (r *ManagedResource) ValidateCreate() error {
 	managedresourcelog.Info("validate create", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object creation.
+	// Ensure a single source exists
+	newManagedResourceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
+	if err != nil {
+		return err
+	} else if newManagedResourceBytes == nil {
+		return errors.New("a single source must be defined")
+	}
+
 	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 	managedresourcelog.Info("validate update", "name", r.Name)
+
+	if err := r.ValidateCreate(); err != nil {
+		return err
+	}
 
 	// Old CR bytes
 	var oldManagedResourceBytesBuffer bytes.Buffer
