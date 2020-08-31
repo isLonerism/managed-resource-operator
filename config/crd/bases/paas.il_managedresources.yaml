@@ -14,6 +14,7 @@ spec:
     listKind: ManagedResourceList
     plural: managedresources
     singular: managedresource
+  preserveUnknownFields: false
   scope: Namespaced
   subresources:
     status: {}
