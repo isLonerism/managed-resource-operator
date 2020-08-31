@@ -46,18 +46,22 @@ spec:
                 description: ManagedResourceStruct is a reference to an object to
                   be managed
                 properties:
-                  apiVersion:
-                    type: string
                   kind:
                     type: string
-                  name:
-                    type: string
-                  namespace:
-                    type: string
+                  metadata:
+                    description: MetadataStruct is a stripped metadata object
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
                 required:
-                - apiVersion
                 - kind
-                - name
+                - metadata
                 type: object
               type: array
           required:

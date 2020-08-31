@@ -17,10 +17,17 @@ limitations under the License.
 package v1beta1
 
 import (
+	"bytes"
+	"errors"
+	"io"
+	"reflect"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+
+	"gopkg.in/yaml.v2"
 
 	"operator/pkg/utils"
 )
@@ -73,7 +80,43 @@ func (r *ManagedResource) ValidateCreate() error {
 func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 	managedresourcelog.Info("validate update", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object update.
+	// Old CR bytes
+	var oldManagedResourceBytesBuffer bytes.Buffer
+	if err := utils.ObjectSerializer.Encode(old, io.Writer(&oldManagedResourceBytesBuffer)); err != nil {
+		return err
+	}
+
+	// Old CR
+	oldManagedResource := &ManagedResource{}
+	if err := yaml.Unmarshal(oldManagedResourceBytesBuffer.Bytes(), oldManagedResource); err != nil {
+		return err
+	}
+
+	// Get both objects as bytes
+	oldManagedResourceBytes, err := utils.GetManagedResourceBytes(oldManagedResource.Spec.Source)
+	if err != nil {
+		return err
+	}
+	newManagedResourceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshal both objects to structs
+	oldManagedResourceStruct := &utils.ManagedResourceStruct{}
+	if err := yaml.Unmarshal(oldManagedResourceBytes, oldManagedResourceStruct); err != nil {
+		return err
+	}
+	newManagedResourceStruct := &utils.ManagedResourceStruct{}
+	if err := yaml.Unmarshal(newManagedResourceBytes, newManagedResourceStruct); err != nil {
+		return err
+	}
+
+	// Ensure that the structs are equal
+	if !reflect.DeepEqual(newManagedResourceStruct, oldManagedResourceStruct) {
+		return errors.New("new managed resource must manage the same object as the old managed resource")
+	}
+
 	return nil
 }
 

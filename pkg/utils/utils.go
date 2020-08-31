@@ -25,12 +25,16 @@ const (
 // ObjectSerializer is a runtime object/byte stream codec
 var ObjectSerializer = kubeyaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 
+// MetadataStruct is a stripped metadata object
+type MetadataStruct struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+}
+
 // ManagedResourceStruct is a reference to an object to be managed
 type ManagedResourceStruct struct {
-	APIVersion string `json:"apiVersion"`
-	Kind       string `json:"kind"`
-	Name       string `json:"name"`
-	Namespace  string `json:"namespace,omitempty"`
+	Kind     string         `json:"kind"`
+	Metadata MetadataStruct `json:"metadata"`
 }
 
 // SourceStruct defines options to supply the managed object code
