@@ -40,6 +40,7 @@ import (
 // log is for logging in this package.
 var managedresourcelog = logf.Log.WithName("managedresource-resource")
 
+// SetupWebhookWithManager registers webhooks with the controller manager
 func (r *ManagedResource) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
