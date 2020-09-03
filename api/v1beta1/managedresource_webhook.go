@@ -55,6 +55,25 @@ func (r *ManagedResource) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 var _ webhook.Defaulter = &ManagedResource{}
 
+func getClient() (client.Client, error) {
+
+	// Add new resources to scheme
+	scheme := runtime.NewScheme()
+	if err := AddToScheme(scheme); err != nil {
+		return nil, err
+	}
+
+	// Init client
+	k8sClient, err := client.New(ctrl.GetConfigOrDie(), client.Options{
+		Scheme: scheme,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return k8sClient, nil
+}
+
 func checkPermissions(r *utils.ManagedResourceStruct, crNamespace string) (bool, error) {
 
 	// Get flat map from target struct
@@ -63,16 +82,8 @@ func checkPermissions(r *utils.ManagedResourceStruct, crNamespace string) (bool,
 		return false, err
 	}
 
-	// Add new resources to scheme
-	scheme := runtime.NewScheme()
-	if err := AddToScheme(scheme); err != nil {
-		return false, err
-	}
-
-	// Init client
-	k8sClient, err := client.New(ctrl.GetConfigOrDie(), client.Options{
-		Scheme: scheme,
-	})
+	// Get updated k8s client
+	k8sClient, err := getClient()
 	if err != nil {
 		return false, err
 	}
@@ -175,8 +186,8 @@ func (r *ManagedResource) ValidateCreate() error {
 
 	// -- Ensure object does not already exist --
 
-	// Init client
-	k8sClient, err := client.New(ctrl.GetConfigOrDie(), client.Options{})
+	// Get updated k8s client
+	k8sClient, err := getClient()
 	if err != nil {
 		return err
 	}
