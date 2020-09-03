@@ -125,6 +125,15 @@ func (r *ManagedResource) ValidateCreate() error {
 		return errors.New("object already exists")
 	}
 
+	// -- Ensure there are no other errors during creation --
+
+	// Try dry-run creation
+	if err := k8sClient.Create(context.Background(), newManagedObject, &client.CreateOptions{
+		DryRun: []string{"All"},
+	}); err != nil && !apierrors.IsAlreadyExists(err) {
+		return err
+	}
+
 	return nil
 }
 
