@@ -67,6 +67,10 @@ func (r *ManagedResource) Default() {
 	r.Spec.Source = utils.SourceStruct{
 		YAML: string(managedResourceBytes),
 	}
+
+	// Set object state as 'pending'
+	r.Status.State = utils.StatePending
+	r.Status.Info = "Object is pending for creation"
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
