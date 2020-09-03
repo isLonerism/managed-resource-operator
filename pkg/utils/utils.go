@@ -31,7 +31,7 @@ var ManagedResourceAnnotation = "managedresources.paas.il/owner"
 // MetadataStruct is a stripped metadata object
 type MetadataStruct struct {
 	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
+	Namespace string `json:"namespace,omitempty"`
 }
 
 // ManagedResourceStruct is a reference to an object to be managed

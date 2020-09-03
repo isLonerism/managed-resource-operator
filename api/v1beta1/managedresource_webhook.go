@@ -32,6 +32,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
+	"github.com/fatih/structs"
+	"github.com/jeremywohl/flatten"
 	"gopkg.in/yaml.v2"
 
 	"operator/pkg/utils"
@@ -52,6 +54,71 @@ func (r *ManagedResource) SetupWebhookWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:webhook:path=/mutate-paas-il-v1beta1-managedresource,mutating=true,failurePolicy=fail,groups=paas.il,resources=managedresources,verbs=create;update,versions=v1beta1,name=mmanagedresource.kb.io
 
 var _ webhook.Defaulter = &ManagedResource{}
+
+func checkPermissions(r *utils.ManagedResourceStruct, crNamespace string) (bool, error) {
+
+	// Get flat map from target struct
+	targetMap, err := flatten.Flatten(structs.Map(r), "", flatten.DotStyle)
+	if err != nil {
+		return false, err
+	}
+
+	// Add new resources to scheme
+	scheme := runtime.NewScheme()
+	if err := AddToScheme(scheme); err != nil {
+		return false, err
+	}
+
+	// Init client
+	k8sClient, err := client.New(ctrl.GetConfigOrDie(), client.Options{
+		Scheme: scheme,
+	})
+	if err != nil {
+		return false, err
+	}
+
+	// List all bindings
+	bindings := &ManagedResourceBindingList{}
+	if err := k8sClient.List(context.Background(), bindings, &client.ListOptions{}); err != nil {
+		return false, err
+	}
+
+	for _, binding := range bindings.Items {
+
+		// Check if namespace is present
+		for _, namespace := range binding.Spec.Namespaces {
+			if namespace == "*" || namespace == crNamespace {
+
+				// Check if object is present
+				for _, object := range binding.Spec.Objects {
+
+					// Get flat map from object struct
+					objectMap, err := flatten.Flatten(structs.Map(object), "", flatten.DotStyle)
+					if err != nil {
+						return false, err
+					}
+
+					// Find matching object
+					match := true
+					for key, value := range objectMap {
+						if value != "*" && value != targetMap[key] {
+							match = false
+							break
+						}
+					}
+
+					// Allow creation if match found
+					if match {
+						return true, nil
+					}
+
+				}
+			}
+		}
+	}
+
+	return false, nil
+}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *ManagedResource) Default() {
@@ -88,6 +155,22 @@ func (r *ManagedResource) ValidateCreate() error {
 		return err
 	} else if newManagedResourceBytes == nil {
 		return errors.New("a single source must be defined")
+	}
+
+	// -- Check permissons ---
+
+	// Unmarshal object to struct
+	newManagedResourceStruct := &utils.ManagedResourceStruct{}
+	if err := yaml.Unmarshal(newManagedResourceBytes, newManagedResourceStruct); err != nil {
+		return err
+	}
+
+	// Check for permission
+	allowed, err := checkPermissions(newManagedResourceStruct, r.Namespace)
+	if err != nil {
+		return err
+	} else if !allowed {
+		return errors.New("permission denied")
 	}
 
 	// -- Ensure object does not already exist --
