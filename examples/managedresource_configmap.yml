@@ -13,4 +13,3 @@ spec:
       metadata:
         name: test-configmap
         namespace: default
-  manage: true

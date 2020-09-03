@@ -5,4 +5,3 @@ metadata:
 spec:
   source:
     url: "https://raw.githubusercontent.com/isLonerism/managed-resource-operator/master/examples/apiextensions_v1beta1_tests.example.com.yaml"
-  manage: true
