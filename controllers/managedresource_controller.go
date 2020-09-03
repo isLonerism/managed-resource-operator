@@ -112,8 +112,8 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	if !managedResource.DeletionTimestamp.IsZero() && controllerutil.ContainsFinalizer(managedResource, managedObjectFinalizer) {
 		controllerutil.RemoveFinalizer(managedResource, managedObjectFinalizer)
 
-		// Delete resource
-		if err := r.Client.Delete(ctx, managedObject); err != nil {
+		// Delete resource if it exists
+		if err := r.Client.Delete(ctx, managedObject); err != nil && !apierrors.IsNotFound(err) {
 			log.Error(err)
 			return ctrl.Result{}, err
 		}
