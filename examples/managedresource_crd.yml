@@ -1,0 +1,8 @@
+apiVersion: paas.il/v1beta1
+kind: ManagedResource
+metadata:
+  name: managedresource-crd
+spec:
+  source:
+    url: "https://raw.githubusercontent.com/isLonerism/managed-resource-operator/master/examples/objects/apiextensions_v1beta1_tests.example.com.yaml"
+  manage: true
