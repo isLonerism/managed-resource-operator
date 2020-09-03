@@ -37,8 +37,6 @@ spec:
         spec:
           description: ManagedResourceSpec defines the desired state of ManagedResource
           properties:
-            manage:
-              type: boolean
             source:
               description: SourceStruct defines options to supply the managed object
                 code
@@ -49,7 +47,6 @@ spec:
                   type: string
               type: object
           required:
-          - manage
           - source
           type: object
         status:
