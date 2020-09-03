@@ -18,12 +18,17 @@ package v1beta1
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"reflect"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
@@ -72,12 +77,52 @@ var _ webhook.Validator = &ManagedResource{}
 func (r *ManagedResource) ValidateCreate() error {
 	managedresourcelog.Info("validate create", "name", r.Name)
 
-	// Ensure a single source exists
+	// -- Ensure a single source exists --
 	newManagedResourceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
 	if err != nil {
 		return err
 	} else if newManagedResourceBytes == nil {
 		return errors.New("a single source must be defined")
+	}
+
+	// -- Ensure object does not already exist --
+
+	// Init client
+	k8sClient, err := client.New(ctrl.GetConfigOrDie(), client.Options{})
+	if err != nil {
+		return err
+	}
+
+	// Decode managed object
+	newManagedObject, _, err := utils.ObjectSerializer.Decode(newManagedResourceBytes, nil, &unstructured.Unstructured{})
+	if err != nil {
+		return err
+	}
+
+	// Get object key
+	newManagedObjectKey, err := client.ObjectKeyFromObject(newManagedObject)
+	if err != nil {
+		return err
+	}
+
+	// Get managed resource key
+	newManagedResourceKey, err := client.ObjectKeyFromObject(r)
+	if err != nil {
+		return err
+	}
+
+	// Try getting object from cluster
+	clusterObject := newManagedObject.DeepCopyObject()
+	if err := k8sClient.Get(context.Background(), newManagedObjectKey, clusterObject); err != nil {
+
+		if !apierrors.IsNotFound(err) {
+			return err
+		}
+
+		// If exists - check if managed by the current managed resource CR
+	} else if clusterObject.(controllerutil.Object).GetAnnotations() == nil ||
+		clusterObject.(controllerutil.Object).GetAnnotations()[utils.ManagedResourceAnnotation] != newManagedResourceKey.String() {
+		return errors.New("object already exists")
 	}
 
 	return nil

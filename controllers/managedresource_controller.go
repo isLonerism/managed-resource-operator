@@ -135,7 +135,7 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	if managedResourceAnnotations == nil {
 		managedResourceAnnotations = make(map[string]string)
 	}
-	managedResourceAnnotations["managedresources.paas.il/owner"] = req.NamespacedName.String()
+	managedResourceAnnotations[utils.ManagedResourceAnnotation] = req.NamespacedName.String()
 	managedObject.(controllerutil.Object).SetAnnotations(managedResourceAnnotations)
 
 	// Get managed resource object key

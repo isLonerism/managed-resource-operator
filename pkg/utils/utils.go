@@ -25,6 +25,9 @@ const (
 // ObjectSerializer is a runtime object/byte stream codec
 var ObjectSerializer = kubeyaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 
+// ManagedResourceAnnotation is a reference to the objects owner CR
+var ManagedResourceAnnotation = "managedresources.paas.il/owner"
+
 // MetadataStruct is a stripped metadata object
 type MetadataStruct struct {
 	Name      string `json:"name"`
