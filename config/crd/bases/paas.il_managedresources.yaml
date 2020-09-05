@@ -8,6 +8,14 @@ metadata:
   creationTimestamp: null
   name: managedresources.paas.il
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.state
+    name: State
+    type: string
+  - JSONPath: .status.lastSuccessfulUpdate
+    format: date-time
+    name: Last Update
+    type: string
   group: paas.il
   names:
     kind: ManagedResource
