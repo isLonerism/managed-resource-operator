@@ -42,7 +42,7 @@ type ManagedResourceBindingStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:shortName=mrb,scope=Cluster
 
 // ManagedResourceBinding is the Schema for the managedresourcebindings API
 type ManagedResourceBinding struct {

@@ -13,6 +13,8 @@ spec:
     kind: ManagedResource
     listKind: ManagedResourceList
     plural: managedresources
+    shortNames:
+    - mr
     singular: managedresource
   preserveUnknownFields: false
   scope: Namespaced

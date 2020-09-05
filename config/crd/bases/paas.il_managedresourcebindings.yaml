@@ -13,6 +13,8 @@ spec:
     kind: ManagedResourceBinding
     listKind: ManagedResourceBindingList
     plural: managedresourcebindings
+    shortNames:
+    - mrb
     singular: managedresourcebinding
   preserveUnknownFields: false
   scope: Cluster

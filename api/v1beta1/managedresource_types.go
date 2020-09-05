@@ -45,6 +45,7 @@ type ManagedResourceStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:shortName=mr,scope=Namespaced
 
 // ManagedResource is the Schema for the managedresources API
 type ManagedResource struct {
