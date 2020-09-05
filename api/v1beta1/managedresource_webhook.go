@@ -124,6 +124,8 @@ func checkPermissions(r *utils.ManagedResourceStruct, crNamespace string) (bool,
 					}
 
 				}
+
+				break
 			}
 		}
 	}
