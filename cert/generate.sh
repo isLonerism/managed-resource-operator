@@ -37,9 +37,5 @@ do
   sleep 1
 done
 
-# write signed certificate to certificate directory
-kubectl get csr managed-resource-webhooks -o jsonpath='{.status.certificate}' | \
-base64 --decode > config/webhook/certs/tls.crt
-
 # store cluster ca certificate
 kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 -w0 > config/webhook/certs/ca.pem.b64
