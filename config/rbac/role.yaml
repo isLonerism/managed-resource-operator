@@ -9,6 +9,14 @@ rules:
 - apiGroups:
   - paas.il
   resources:
+  - managedresourcebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - paas.il
+  resources:
   - managedresources
   verbs:
   - create

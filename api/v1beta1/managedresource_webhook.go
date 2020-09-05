@@ -52,6 +52,7 @@ func (r *ManagedResource) SetupWebhookWithManager(mgr ctrl.Manager) error {
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
 // +kubebuilder:webhook:path=/mutate-paas-il-v1beta1-managedresource,mutating=true,failurePolicy=fail,groups=paas.il,resources=managedresources,verbs=create;update,versions=v1beta1,name=mmanagedresource.kb.io
+// +kubebuilder:rbac:groups=paas.il,resources=managedresourcebindings,verbs=get;list;watch
 
 var _ webhook.Defaulter = &ManagedResource{}
 
