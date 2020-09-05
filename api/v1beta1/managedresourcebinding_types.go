@@ -30,8 +30,11 @@ type ManagedResourceBindingSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Objects    []utils.ManagedResourceStruct `json:"objects"`
-	Namespaces []string                      `json:"namespaces"`
+	// +kubebuilder:validation:MinItems=1
+	Objects []utils.ManagedResourceStruct `json:"objects"`
+
+	// +kubebuilder:validation:MinItems=1
+	Namespaces []utils.Namespace `json:"namespaces"`
 }
 
 // ManagedResourceBindingStatus defines the observed state of ManagedResourceBinding

@@ -121,7 +121,7 @@ func (in *ManagedResourceBindingSpec) DeepCopyInto(out *ManagedResourceBindingSp
 	}
 	if in.Namespaces != nil {
 		in, out := &in.Namespaces, &out.Namespaces
-		*out = make([]string, len(*in))
+		*out = make([]utils.Namespace, len(*in))
 		copy(*out, *in)
 	}
 }

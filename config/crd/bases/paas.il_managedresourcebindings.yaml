@@ -42,7 +42,11 @@ spec:
           properties:
             namespaces:
               items:
+                description: Namespace is an alias for a namespace string
+                maxLength: 63
+                minLength: 1
                 type: string
+              minItems: 1
               type: array
             objects:
               items:
@@ -57,6 +61,9 @@ spec:
                       name:
                         type: string
                       namespace:
+                        description: Namespace is an alias for a namespace string
+                        maxLength: 63
+                        minLength: 1
                         type: string
                     required:
                     - name
@@ -65,6 +72,7 @@ spec:
                 - kind
                 - metadata
                 type: object
+              minItems: 1
               type: array
           required:
           - namespaces

@@ -75,7 +75,7 @@ func getClient() (client.Client, error) {
 	return k8sClient, nil
 }
 
-func checkPermissions(r *utils.ManagedResourceStruct, crNamespace string) (bool, error) {
+func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespace) (bool, error) {
 
 	// Get flat map from target struct
 	targetMap, err := flatten.Flatten(structs.Map(r), "", flatten.DotStyle)
@@ -180,7 +180,7 @@ func (r *ManagedResource) ValidateCreate() error {
 	}
 
 	// Check for permission
-	allowed, err := checkPermissions(newManagedResourceStruct, r.Namespace)
+	allowed, err := checkPermissions(newManagedResourceStruct, utils.Namespace(r.Namespace))
 	if err != nil {
 		return err
 	} else if !allowed {

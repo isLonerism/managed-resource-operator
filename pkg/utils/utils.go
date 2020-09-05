@@ -27,10 +27,15 @@ var ObjectSerializer = kubeyaml.NewDecodingSerializer(unstructured.UnstructuredJ
 // ManagedResourceAnnotation is a reference to the objects owner CR
 var ManagedResourceAnnotation = "managedresources.paas.il/owner"
 
+// Namespace is an alias for a namespace string
+// +kubebuilder:validation:MaxLength=63
+// +kubebuilder:validation:MinLength=1
+type Namespace string
+
 // MetadataStruct is a stripped metadata object
 type MetadataStruct struct {
-	Name      string `json:"name"`
-	Namespace string `json:"namespace,omitempty"`
+	Name      string    `json:"name"`
+	Namespace Namespace `json:"namespace,omitempty"`
 }
 
 // ManagedResourceStruct is a reference to an object to be managed
