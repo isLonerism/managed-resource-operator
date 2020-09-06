@@ -104,7 +104,7 @@ The operator effectively bypasses the RBAC permissions defined within Kubernetes
 
 ## Deployment
 
-Deploying Managed Resource Operator within your cluster is pretty straightforward.
+Deploying Managed Resource Operator within your cluster is pretty straightforward. Note that the operator will need to be deployed in the **managed-resource-operator-system** namespace.
 
 #### Prerequisites
 
@@ -132,7 +132,7 @@ This assumes your cluster does not have direct connection to the Internet.
    - cloned/downloaded repository
 5. Push the operator image to a disconnected image registry
 6. Unpack the repository on a disconnected machine logged-in to the cluster
-7. Move the controller-gen and kustomize binaries to any directory specified in your $PATH
+7. Move the controller-gen and kustomize binaries to any directory specified in your `$PATH`
 8. Run `make bundle-write`
 9. Edit the name of the operator image within the Deployment resource in ./bundle.yaml
 10. Run `kubectl create -f bundle.yaml`
