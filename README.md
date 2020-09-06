@@ -102,6 +102,41 @@ Any field within the ManagedResourceBinding can either be a specific value or a 
 
 The operator effectively bypasses the RBAC permissions defined within Kubernetes. It's strongly discouraged to grant permissions for kinds such as "RoleBinding", "ClusterRoleBinding" or any other resource related to actual RBAC permissions. In addition, it's generally not recommended to set a wildcard value to 'kind' and 'namespace' fields. Permission problems are better solved using conventional RBAC permissions, only use ManagedResource as a last resort.
 
+## Deployment
+
+Deploying Managed Resource Operator within your cluster is pretty straightforward.
+
+#### Prerequisites
+
+- go 1.13+
+- kubectl (logged-in as cluster-admin)
+
+### Connected deployment
+
+This assumes your cluster is connected to the Internet.
+
+1. Clone/Download this repository to your machine and change your current directory to the destination directory
+2. Run `make deploy`
+
+### Disconnected (Air-Gap) deployment
+
+This assumes your cluster does not have direct connection to the Internet.
+
+1. Clone/Download this repostory to a regular machine with Internet connection and go 1.13+, then change your current directory to the destination directory
+2. Run `make controller-gen` and `make kustomize`
+3. `docker pull` and `docker save` the operator image: `docker.io/vladpbr/mro:0.1.0`
+4. Transfer the following files to your target network:
+   - controller-gen binary (`which controller-gen`)
+   - kustomize binary (`which kustomize`)
+   - operator docker image archive
+   - cloned/downloaded repository
+5. Push the operator image to a disconnected image registry
+6. Unpack the repository on a disconnected machine logged-in to the cluster
+7. Move the controller-gen and kustomize binaries to any directory specified in your $PATH
+8. Run `make bundle-write`
+9. Edit the name of the operator image within the Deployment resource in ./bundle.yaml
+10. Run `kubectl create -f bundle.yaml`
+
 ## License
 
 The Managed Resource Operator is released under the Apache 2.0 license. See the [LICENSE][license_file] file for details.
