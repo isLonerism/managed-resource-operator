@@ -19,6 +19,8 @@ package main
 import (
 	"flag"
 	"os"
+	"strconv"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -55,12 +57,23 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
 
+	// Try parsing reconciliation period from environment variable
+	const envReconciliationIntervalMS = "RECONCILIATION_INTERVAL_MS"
+	defaultSyncPeriodMS := uint64(60000)
+	syncPeriodMS, err := strconv.ParseUint(os.Getenv(envReconciliationIntervalMS), 10, 32)
+	if err != nil {
+		setupLog.Info("could not parse " + envReconciliationIntervalMS + " environment variable, falling back to " + strconv.Itoa(int(defaultSyncPeriodMS)))
+		syncPeriodMS = defaultSyncPeriodMS
+	}
+	syncPeriod := time.Duration(syncPeriodMS) * time.Millisecond
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
 		Port:               9443,
 		LeaderElection:     enableLeaderElection,
 		LeaderElectionID:   "fbd4eefd.il",
+		SyncPeriod:         &syncPeriod,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
