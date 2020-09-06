@@ -14,7 +14,7 @@ Managed Resource Operator defines the following resources:
 
 ### ManagedResource
 
-ManagedResource is a pointer to the actual resource within the cluster. While users might not be able to view the actual resource due to insufficient RBAC permissions, they can manage their resource through this object. There are multiple ways you can create your resource to this object:
+ManagedResource is a pointer to the actual resource within the cluster. While users might not be able to view the actual resource due to insufficient RBAC permissions, they can manage their resource through this object. There are multiple ways you can create your resource using this object:
 
 - Plain YAML:
 
@@ -68,7 +68,7 @@ spec:
         namespace: default
 ```
 
-After initial creation of the resource, no matter which method was specified, the resource will use the embedded resource format. Further editing of the object can be achieved by applying the same ManagedResource with an updated URL/YAML/Object or by directly editing the resource. Upon deletion of ManagedResource, its managed object is deleted as well.
+After initial creation of the resource, no matter which method was specified, the resource will use the embedded resource format. Further editing of the object can be achieved by applying the same ManagedResource with an updated URL/YAML/Object or by directly editing the ManagedResource. Upon deletion of ManagedResource, its managed object is deleted as well.
 
 ### ManagedResourceBinding
 
@@ -96,9 +96,9 @@ The following ManagedResourceBinding defines two rules:
 - ANY namespace can manage a CustomResourceDefinition object called "tests.example.com"
 - ANY namespace can manage ANY ConfigMap object within the "default" namespace
 
-Any field within the ManagedResourceBinding can be either a specific value or a wildcard value.
+Any field within the ManagedResourceBinding can either be a specific value or a wildcard value.
 
-## a word of caution
+## A word of caution
 
 The operator effectively bypasses the RBAC permissions defined within Kubernetes. It's strongly discouraged to grant permissions for kinds such as "RoleBinding", "ClusterRoleBinding" or any other resource related to actual RBAC permissions. In addition, it's generally not recommended to set a wildcard value to 'kind' and 'namespace' fields. Permission problems are better solved using conventional RBAC permissions, only use ManagedResource as a last resort.
 
