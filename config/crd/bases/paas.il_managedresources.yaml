@@ -52,6 +52,7 @@ spec:
                 code
               properties:
                 object:
+                  nullable: true
                   type: object
                   x-kubernetes-embedded-resource: true
                   x-kubernetes-preserve-unknown-fields: true
