@@ -34,7 +34,7 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/jeremywohl/flatten"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
 	"operator/pkg/utils"
 )
@@ -144,9 +144,20 @@ func (r *ManagedResource) Default() {
 		return
 	}
 
+	// Convert YAML bytes to JSON bytes for raw extension
+	managedResourceBytesJSON, err := yaml.YAMLToJSON(managedResourceBytes)
+	if err != nil {
+		return
+	}
+
+	// New raw object struct with managed resource bytes
+	objectSource := runtime.RawExtension{
+		Raw: managedResourceBytesJSON,
+	}
+
 	// New source struct with only the YAML field defined
 	r.Spec.Source = utils.SourceStruct{
-		YAML: string(managedResourceBytes),
+		Object: objectSource,
 	}
 
 	// Set object state as 'pending'
