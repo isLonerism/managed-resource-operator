@@ -9,6 +9,12 @@ metadata:
   name: managedresources.paas.il
 spec:
   additionalPrinterColumns:
+  - JSONPath: .spec.source.object.kind
+    name: Kind
+    type: string
+  - JSONPath: .spec.source.object.metadata.namespace
+    name: Namespace
+    type: string
   - JSONPath: .status.state
     name: State
     type: string
