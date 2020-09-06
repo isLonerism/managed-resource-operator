@@ -45,6 +45,12 @@ install: manifests kustomize
 uninstall: manifests kustomize
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
+# write operator bundle
+bundle-write: manifests kustomize
+	cert/bundle.sh
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default > bundle.yaml
+
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 deploy: manifests kustomize certs
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}

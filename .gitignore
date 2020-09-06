@@ -28,3 +28,6 @@ bin
 
 # webhook certificates
 config/webhook/certs/*
+
+# generated bundle
+/bundle.yaml
