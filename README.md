@@ -137,6 +137,10 @@ This assumes your cluster does not have direct connection to the Internet.
 9. Edit the name of the operator image as well as kube-rbac-proxy image within the Deployment resource in `./bundle.yaml`
 10. Run `kubectl create -f bundle.yaml`
 
+### Alternative
+
+You can also deploy the operator using a ready [bundle.yaml](deploy/bundle.yaml) file. However, you will still need to transfer both operator images as well as generate and sign webhook TLS certificates on your own. Click [here](deploy/) for more information.
+
 ## License
 
 The Managed Resource Operator is released under the Apache 2.0 license. See the [LICENSE][license_file] file for details.
