@@ -1,6 +1,6 @@
 # Managed Resource Operator
 
-[![Go Report Card](https://goreportcard.com/report/isLonerism/managed-resource-operator "Go Report Card")](https://goreportcard.com/report/isLonerism/managed-resource-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/isLonerism/managed-resource-operator)](https://goreportcard.com/report/github.com/isLonerism/managed-resource-operator)
 
 A Kubernetes operator for management of specific resources by regular users outside the RBAC permission scope.
 
