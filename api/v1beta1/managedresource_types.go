@@ -46,6 +46,8 @@ type ManagedResourceStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName=mr,scope=Namespaced
+// +kubebuilder:printcolumn:name="Kind",type=string,JSONPath=`.spec.source.object.kind`
+// +kubebuilder:printcolumn:name="Namespace",type=string,JSONPath=`.spec.source.object.metadata.namespace`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 // +kubebuilder:printcolumn:name="Last Update",type=string,format=date-time,JSONPath=`.status.lastSuccessfulUpdate`
 

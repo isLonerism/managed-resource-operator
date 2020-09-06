@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	kubeyaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 // ManagedState is a custom state type for a managed resource
@@ -56,12 +58,18 @@ type ManagedResourceStruct struct {
 type SourceStruct struct {
 	URL  string `json:"url,omitempty"`
 	YAML string `json:"yaml,omitempty"`
+
+	// +kubebuilder:validation:XEmbeddedResource
+	// +kubebuilder:validation:XPreserveUnknownFields
+	// +nullable
+	Object runtime.RawExtension `json:"object,omitempty"`
 }
 
 // A map of source types and their appropriate retrieval methods
 var sourceFunctions = map[string]func(SourceStruct) ([]byte, error){
-	"URL":  getManagedResourceBytesByURL,
-	"YAML": getManagedResourceBytesByYAML,
+	"URL":    getManagedResourceBytesByURL,
+	"YAML":   getManagedResourceBytesByYAML,
+	"Object": getManagedResourceBytesByObject,
 }
 
 // GetManagedResourceBytes returns the managed object yaml as bytes
@@ -119,4 +127,15 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 
 func getManagedResourceBytesByYAML(sourceStruct SourceStruct) ([]byte, error) {
 	return []byte(sourceStruct.YAML), nil
+}
+
+func getManagedResourceBytesByObject(sourceStruct SourceStruct) ([]byte, error) {
+
+	// Write raw json bytes as yaml bytes
+	embeddedYAMLBytes, err := yaml.JSONToYAML(sourceStruct.Object.Raw)
+	if err != nil {
+		return nil, errors.New("an error occured while reading object: " + err.Error())
+	}
+
+	return embeddedYAMLBytes, nil
 }
