@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	kubeyaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 )
 
@@ -56,12 +57,17 @@ type ManagedResourceStruct struct {
 type SourceStruct struct {
 	URL  string `json:"url,omitempty"`
 	YAML string `json:"yaml,omitempty"`
+
+	// +kubebuilder:validation:XEmbeddedResource
+	// +kubebuilder:validation:XPreserveUnknownFields
+	Object runtime.RawExtension `json:"object,omitempty"`
 }
 
 // A map of source types and their appropriate retrieval methods
 var sourceFunctions = map[string]func(SourceStruct) ([]byte, error){
-	"URL":  getManagedResourceBytesByURL,
-	"YAML": getManagedResourceBytesByYAML,
+	"URL":    getManagedResourceBytesByURL,
+	"YAML":   getManagedResourceBytesByYAML,
+	"Object": getManagedResourceBytesByObject,
 }
 
 // GetManagedResourceBytes returns the managed object yaml as bytes
@@ -119,4 +125,8 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 
 func getManagedResourceBytesByYAML(sourceStruct SourceStruct) ([]byte, error) {
 	return []byte(sourceStruct.YAML), nil
+}
+
+func getManagedResourceBytesByObject(sourceStruct SourceStruct) ([]byte, error) {
+	return nil, nil
 }

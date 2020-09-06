@@ -51,6 +51,10 @@ spec:
               description: SourceStruct defines options to supply the managed object
                 code
               properties:
+                object:
+                  type: object
+                  x-kubernetes-embedded-resource: true
+                  x-kubernetes-preserve-unknown-fields: true
                 url:
                   type: string
                 yaml:
