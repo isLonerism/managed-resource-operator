@@ -44,7 +44,7 @@ spec:
               items:
                 description: Namespace is an alias for a namespace string
                 maxLength: 63
-                pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?$)|(^[*]$)
                 type: string
               minItems: 1
               type: array
@@ -55,19 +55,19 @@ spec:
                 properties:
                   kind:
                     maxLength: 63
-                    pattern: ^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$
+                    pattern: (^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$)|(^[*]$)
                     type: string
                   metadata:
                     description: MetadataStruct is a stripped metadata object
                     properties:
                       name:
                         maxLength: 253
-                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                        pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$)|(^[*]$)
                         type: string
                       namespace:
                         description: Namespace is an alias for a namespace string
                         maxLength: 63
-                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                        pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?$)|(^[*]$)
                         type: string
                     required:
                     - name
