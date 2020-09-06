@@ -49,8 +49,6 @@ func (r *ManagedResource) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-
 // +kubebuilder:webhook:path=/mutate-paas-il-v1beta1-managedresource,mutating=true,failurePolicy=fail,groups=paas.il,resources=managedresources,verbs=create;update,versions=v1beta1,name=mmanagedresource.kb.io
 // +kubebuilder:rbac:groups=paas.il,resources=managedresourcebindings,verbs=get;list;watch
 
@@ -165,7 +163,6 @@ func (r *ManagedResource) Default() {
 	r.Status.Info = "Object is pending for creation"
 }
 
-// TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 // +kubebuilder:webhook:verbs=create;update,path=/validate-paas-il-v1beta1-managedresource,mutating=false,failurePolicy=fail,groups=paas.il,resources=managedresources,versions=v1beta1,name=vmanagedresource.kb.io
 
 var _ webhook.Validator = &ManagedResource{}
@@ -302,6 +299,5 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 func (r *ManagedResource) ValidateDelete() error {
 	managedresourcelog.Info("validate delete", "name", r.Name)
 
-	// TODO(user): fill in your validation logic upon object deletion.
 	return nil
 }

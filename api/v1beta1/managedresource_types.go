@@ -22,22 +22,13 @@ import (
 	"operator/pkg/utils"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // ManagedResourceSpec defines the desired state of ManagedResource
 type ManagedResourceSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	Source utils.SourceStruct `json:"source"`
 }
 
 // ManagedResourceStatus defines the observed state of ManagedResource
 type ManagedResourceStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
 	State utils.ManagedState `json:"state"`
 	Info  string             `json:"info"`
 }

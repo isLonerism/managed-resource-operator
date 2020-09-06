@@ -22,13 +22,8 @@ import (
 	"operator/pkg/utils"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // ManagedResourceBindingSpec defines the desired state of ManagedResourceBinding
 type ManagedResourceBindingSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 
 	// +kubebuilder:validation:MinItems=1
 	Objects []utils.ManagedResourceStruct `json:"objects"`
@@ -39,8 +34,6 @@ type ManagedResourceBindingSpec struct {
 
 // ManagedResourceBindingStatus defines the observed state of ManagedResourceBinding
 type ManagedResourceBindingStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
 }
 
 // +kubebuilder:object:root=true
