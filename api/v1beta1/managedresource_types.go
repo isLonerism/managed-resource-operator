@@ -38,9 +38,8 @@ type ManagedResourceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	State                utils.ManagedState `json:"state"`
-	Info                 string             `json:"info"`
-	LastSuccessfulUpdate string             `json:"lastSuccessfulUpdate"`
+	State utils.ManagedState `json:"state"`
+	Info  string             `json:"info"`
 }
 
 // +kubebuilder:object:root=true
@@ -49,7 +48,6 @@ type ManagedResourceStatus struct {
 // +kubebuilder:printcolumn:name="Kind",type=string,JSONPath=`.spec.source.object.kind`
 // +kubebuilder:printcolumn:name="Namespace",type=string,JSONPath=`.spec.source.object.metadata.namespace`
 // +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
-// +kubebuilder:printcolumn:name="Last Update",type=string,format=date-time,JSONPath=`.status.lastSuccessfulUpdate`
 
 // ManagedResource is the Schema for the managedresources API
 type ManagedResource struct {

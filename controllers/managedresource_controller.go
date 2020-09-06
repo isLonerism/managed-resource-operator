@@ -19,7 +19,6 @@ package controllers
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/prometheus/common/log"
@@ -53,7 +52,6 @@ func finishReconciliation(result ctrl.Result, err error, managedResource *paasv1
 	} else {
 		(*managedResource).Status.State = utils.StateManaged
 		(*managedResource).Status.Info = "Managing resource"
-		(*managedResource).Status.LastSuccessfulUpdate = time.Now().Format(time.RFC3339)
 	}
 
 	if err := r.Status().Update(context.Background(), managedResource); err != nil {
