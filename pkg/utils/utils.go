@@ -117,16 +117,16 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 	// Get resource yaml from remote
 	response, err := client.Get(sourceStruct.URL)
 	if err != nil {
-		return nil, errors.New("an error occured while querying " + sourceStruct.URL + ": " + err.Error())
+		return nil, errors.New("an error occurred while querying " + sourceStruct.URL + ": " + err.Error())
 	} else if response.StatusCode != 200 {
-		return nil, errors.New("an error occured while querying " + sourceStruct.URL + ": " + response.Status)
+		return nil, errors.New("an error occurred while querying " + sourceStruct.URL + ": " + response.Status)
 	}
 	defer response.Body.Close()
 
 	// Read response as byte array
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return nil, errors.New("an error occured while reading response from " + sourceStruct.URL + ": " + err.Error())
+		return nil, errors.New("an error occurred while reading response from " + sourceStruct.URL + ": " + err.Error())
 	}
 
 	return body, nil
@@ -141,7 +141,7 @@ func getManagedResourceBytesByObject(sourceStruct SourceStruct) ([]byte, error) 
 	// Write raw json bytes as yaml bytes
 	embeddedYAMLBytes, err := yaml.JSONToYAML(sourceStruct.Object.Raw)
 	if err != nil {
-		return nil, errors.New("an error occured while reading object: " + err.Error())
+		return nil, errors.New("an error occurred while reading object: " + err.Error())
 	}
 
 	return embeddedYAMLBytes, nil

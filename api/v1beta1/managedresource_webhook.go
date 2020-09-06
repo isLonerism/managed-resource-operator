@@ -179,7 +179,7 @@ func (r *ManagedResource) ValidateCreate() error {
 		return errors.New("a single source must be defined")
 	}
 
-	// -- Check permissons ---
+	// -- Check permissions ---
 
 	// Unmarshal object to struct
 	newManagedResourceStruct := &utils.ManagedResourceStruct{}
