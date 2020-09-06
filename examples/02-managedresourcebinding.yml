@@ -1,7 +1,7 @@
 apiVersion: paas.il/v1beta1
 kind: ManagedResourceBinding
 metadata:
-  name: managedresourcebinding-crd-cm
+  name: managedresourcebinding-cm-crd
 spec:
   objects:
   - kind: CustomResourceDefinition
@@ -9,7 +9,7 @@ spec:
       name: tests.example.com
   - kind: ConfigMap
     metadata:
-      name: test-configmap
+      name: "*"
       namespace: default
   namespaces:
-  - default
+  - "*"
