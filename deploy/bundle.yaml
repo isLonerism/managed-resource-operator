@@ -1,0 +1,485 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: managed-resource-operator-system
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: managedresourcebindings.paas.il
+spec:
+  group: paas.il
+  names:
+    kind: ManagedResourceBinding
+    listKind: ManagedResourceBindingList
+    plural: managedresourcebindings
+    shortNames:
+    - mrb
+    singular: managedresourcebinding
+  preserveUnknownFields: false
+  scope: Cluster
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: ManagedResourceBinding is the Schema for the managedresourcebindings
+        API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ManagedResourceBindingSpec defines the desired state of ManagedResourceBinding
+          properties:
+            namespaces:
+              items:
+                description: Namespace is an alias for a namespace string
+                maxLength: 63
+                pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?$)|(^[*]$)
+                type: string
+              minItems: 1
+              type: array
+            objects:
+              items:
+                description: ManagedResourceStruct is a reference to an object to
+                  be managed
+                properties:
+                  kind:
+                    maxLength: 63
+                    pattern: (^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$)|(^[*]$)
+                    type: string
+                  metadata:
+                    description: MetadataStruct is a stripped metadata object
+                    properties:
+                      name:
+                        maxLength: 253
+                        pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$)|(^[*]$)
+                        type: string
+                      namespace:
+                        description: Namespace is an alias for a namespace string
+                        maxLength: 63
+                        pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?$)|(^[*]$)
+                        type: string
+                    required:
+                    - name
+                    type: object
+                required:
+                - kind
+                - metadata
+                type: object
+              minItems: 1
+              type: array
+          required:
+          - namespaces
+          - objects
+          type: object
+        status:
+          description: ManagedResourceBindingStatus defines the observed state of
+            ManagedResourceBinding
+          type: object
+      type: object
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: managedresources.paas.il
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.source.object.kind
+    name: Kind
+    type: string
+  - JSONPath: .spec.source.object.metadata.namespace
+    name: Namespace
+    type: string
+  - JSONPath: .status.state
+    name: State
+    type: string
+  group: paas.il
+  names:
+    kind: ManagedResource
+    listKind: ManagedResourceList
+    plural: managedresources
+    shortNames:
+    - mr
+    singular: managedresource
+  preserveUnknownFields: false
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: ManagedResource is the Schema for the managedresources API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ManagedResourceSpec defines the desired state of ManagedResource
+          properties:
+            source:
+              description: SourceStruct defines options to supply the managed object
+                code
+              properties:
+                object:
+                  nullable: true
+                  type: object
+                  x-kubernetes-embedded-resource: true
+                  x-kubernetes-preserve-unknown-fields: true
+                url:
+                  type: string
+                yaml:
+                  type: string
+              type: object
+          required:
+          - source
+          type: object
+        status:
+          description: ManagedResourceStatus defines the observed state of ManagedResource
+          properties:
+            info:
+              type: string
+            state:
+              description: ManagedState is a custom state type for a managed resource
+              type: string
+          required:
+          - info
+          - state
+          type: object
+      type: object
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: managed-resource-operator-mutating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: ${WEBHOOK_CA_BASE64}
+    service:
+      name: managed-resource-operator-webhook-service
+      namespace: managed-resource-operator-system
+      path: /mutate-paas-il-v1beta1-managedresource
+  failurePolicy: Fail
+  name: mmanagedresource.kb.io
+  rules:
+  - apiGroups:
+    - paas.il
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - managedresources
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: managed-resource-operator-leader-election-role
+  namespace: managed-resource-operator-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: managed-resource-operator-manager-role
+rules:
+- apiGroups:
+  - paas.il
+  resources:
+  - managedresourcebindings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - paas.il
+  resources:
+  - managedresources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - paas.il
+  resources:
+  - managedresources/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: managed-resource-operator-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: managed-resource-operator-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: managed-resource-operator-leader-election-rolebinding
+  namespace: managed-resource-operator-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: managed-resource-operator-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: managed-resource-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: managed-resource-operator-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: managed-resource-operator-manager-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: managed-resource-operator-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: managed-resource-operator-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: managed-resource-operator-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: managed-resource-operator-system
+---
+apiVersion: v1
+data:
+  ca.pem.b64: ${WEBHOOK_CA_BASE64}
+kind: ConfigMap
+metadata:
+  name: managed-resource-operator-ca-cert-t8h27gk79k
+  namespace: managed-resource-operator-system
+---
+apiVersion: v1
+data:
+  tls.crt: ${WEBHOOK_TLS_CRT_BASE64}
+  tls.key: ${WEBHOOK_TLS_KEY_BASE64}
+kind: Secret
+metadata:
+  name: managed-resource-operator-webhook-server-cert-8hc878b5gt
+  namespace: managed-resource-operator-system
+type: kubernetes.io/tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: managed-resource-operator-controller-manager-metrics-service
+  namespace: managed-resource-operator-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    targetPort: https
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: managed-resource-operator-webhook-service
+  namespace: managed-resource-operator-system
+spec:
+  ports:
+  - port: 443
+    targetPort: 9443
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    control-plane: controller-manager
+  name: managed-resource-operator-controller-manager
+  namespace: managed-resource-operator-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=10
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0
+        name: kube-rbac-proxy
+        ports:
+        - containerPort: 8443
+          name: https
+      - args:
+        - --metrics-addr=127.0.0.1:8080
+        - --enable-leader-election
+        command:
+        - /manager
+        image: docker.io/vladpbr/mro:0.1.0
+        name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+        volumeMounts:
+        - mountPath: /tmp/k8s-webhook-server/serving-certs
+          name: cert
+          readOnly: true
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: managed-resource-operator-webhook-server-cert-8hc878b5gt
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  creationTimestamp: null
+  name: managed-resource-operator-validating-webhook-configuration
+webhooks:
+- clientConfig:
+    caBundle: ${WEBHOOK_CA_BASE64}
+    service:
+      name: managed-resource-operator-webhook-service
+      namespace: managed-resource-operator-system
+      path: /validate-paas-il-v1beta1-managedresource
+  failurePolicy: Fail
+  name: vmanagedresource.kb.io
+  rules:
+  - apiGroups:
+    - paas.il
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - managedresources
