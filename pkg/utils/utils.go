@@ -65,6 +65,13 @@ type SourceStruct struct {
 	Object runtime.RawExtension `json:"object,omitempty"`
 }
 
+// DeepCopyInto is a custom deep copy method for source struct which controller-gen expects
+func (r *SourceStruct) DeepCopyInto(out *SourceStruct) {
+	(*out).URL = r.URL
+	(*out).YAML = r.YAML
+	r.Object.DeepCopyInto(&out.Object)
+}
+
 // A map of source types and their appropriate retrieval methods
 var sourceFunctions = map[string]func(SourceStruct) ([]byte, error){
 	"URL":    getManagedResourceBytesByURL,
