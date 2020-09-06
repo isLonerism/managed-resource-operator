@@ -29,18 +29,26 @@ var ManagedResourceAnnotation = "managedresources.paas.il/owner"
 
 // Namespace is an alias for a namespace string
 // +kubebuilder:validation:MaxLength=63
-// +kubebuilder:validation:MinLength=1
+// +kubebuilder:validation:Pattern="^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
 type Namespace string
 
 // MetadataStruct is a stripped metadata object
 type MetadataStruct struct {
-	Name      string    `json:"name"`
+
+	// +kubebuilder:validation:MaxLength=253
+	// +kubebuilder:validation:Pattern="^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
+	Name string `json:"name"`
+
 	Namespace Namespace `json:"namespace,omitempty"`
 }
 
 // ManagedResourceStruct is a reference to an object to be managed
 type ManagedResourceStruct struct {
-	Kind     string         `json:"kind"`
+
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern="^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$"
+	Kind string `json:"kind"`
+
 	Metadata MetadataStruct `json:"metadata"`
 }
 
