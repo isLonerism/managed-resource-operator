@@ -163,7 +163,7 @@ func (r *ManagedResource) Default() {
 	r.Status.Info = "Object is pending for creation"
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-paas-il-v1beta1-managedresource,mutating=false,failurePolicy=fail,groups=paas.il,resources=managedresources,versions=v1beta1,name=vmanagedresource.kb.io
+// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-paas-il-v1beta1-managedresource,mutating=false,failurePolicy=fail,groups=paas.il,resources=managedresources,versions=v1beta1,name=vmanagedresource.kb.io
 
 var _ webhook.Validator = &ManagedResource{}
 
@@ -298,6 +298,31 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (r *ManagedResource) ValidateDelete() error {
 	managedresourcelog.Info("validate delete", "name", r.Name)
+
+	// Get object bytes
+	managedResouceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
+	if err != nil {
+		return err
+	}
+
+	// Get runtime object from bytes
+	managedObject, _, err := utils.ObjectSerializer.Decode(managedResouceBytes, nil, &unstructured.Unstructured{})
+	if err != nil {
+		return err
+	}
+
+	// Get new k8s client
+	k8sclient, err := getClient()
+	if err != nil {
+		return err
+	}
+
+	// Try dry-run deletion of managed object
+	if err := k8sclient.Delete(context.Background(), managedObject, &client.DeleteOptions{
+		DryRun: []string{"All"},
+	}); err != nil && !apierrors.IsNotFound(err) {
+		return err
+	}
 
 	return nil
 }
