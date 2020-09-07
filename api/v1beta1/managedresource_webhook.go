@@ -300,25 +300,25 @@ func (r *ManagedResource) ValidateDelete() error {
 	managedresourcelog.Info("validate delete", "name", r.Name)
 
 	// Get object bytes
-	managedResouceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
+	managedResourceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
 	if err != nil {
 		return err
 	}
 
 	// Get runtime object from bytes
-	managedObject, _, err := utils.ObjectSerializer.Decode(managedResouceBytes, nil, &unstructured.Unstructured{})
+	managedObject, _, err := utils.ObjectSerializer.Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
 	if err != nil {
 		return err
 	}
 
 	// Get new k8s client
-	k8sclient, err := getClient()
+	k8sClient, err := getClient()
 	if err != nil {
 		return err
 	}
 
 	// Try dry-run deletion of managed object
-	if err := k8sclient.Delete(context.Background(), managedObject, &client.DeleteOptions{
+	if err := k8sClient.Delete(context.Background(), managedObject, &client.DeleteOptions{
 		DryRun: []string{"All"},
 	}); err != nil && !apierrors.IsNotFound(err) {
 		return err
