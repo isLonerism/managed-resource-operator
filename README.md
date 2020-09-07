@@ -122,29 +122,22 @@ This assumes your cluster is connected to the Internet.
 
 This assumes your cluster does not have direct connection to the Internet.
 
-1. Clone/Download this repostory to a regular machine with Internet connection and go 1.13+, then change your current directory to the destination directory
-2. Run `make controller-gen` and `make kustomize`
-3. `docker pull` and `docker save` the operator image (`docker.io/vladpbr/managed-resource-operator:0.1.0`) and kube-rbac-proxy image (`gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0`)
-4. Transfer the following files to your target network:
-   - controller-gen binary (`which controller-gen`)
-   - kustomize binary (`which kustomize`)
-   - operator docker image and kube-rbac-proxy docker image
-   - cloned/downloaded repository
-5. Push the operator and kube-rbac-proxy images to a disconnected image registry
-6. Unpack the repository on a disconnected machine logged-in to the cluster
-7. Move the controller-gen and kustomize binaries to any directory specified in your `$PATH`
-8. Run `make bundle-write`
-9. Edit the name of the operator image as well as kube-rbac-proxy image within the Deployment resource in `./bundle.yaml`
-10. Run `kubectl create -f bundle.yaml`
-
-### Alternative
-
-You can also deploy the operator using a ready [bundle.yaml][bundle_file] file. However, you will still need to transfer both operator images as well as generate and sign webhook TLS certificates on your own. Click [here][bundle_dir] for more information.
+1. Clone/Download this repostory
+2. `docker pull` and `docker save` the operator image (`docker.io/vladpbr/managed-resource-operator:0.1.0`) and kube-rbac-proxy image (`gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0`)
+3. Transfer the repository folder and the saved images to your target network
+4. Push the operator and kube-rbac-proxy images to a disconnected image registry
+5. Unpack the repository on a disconnected machine logged-in to the cluster and `cd` to that directory
+6. Run `make certs` - **this will create and sign the webhook certificate using your cluster's CA**
+7. Substitute the placeholder environment variables within `bundle.yaml` with actual certificates and create:
+``` bash
+export WEBHOOK_CA_BASE64=$(cat config/webhook/certs/ca.pem.b64)
+export WEBHOOK_TLS_CRT_BASE64=$(cat config/webhook/certs/tls.crt | base64 -w0)
+export WEBHOOK_TLS_KEY_BASE64=$(cat config/webhook/certs/tls.key | base64 -w0)
+envsubst < deploy/bundle.yaml | kubectl create -f -
+```
 
 ## License
 
 The Managed Resource Operator is released under the Apache 2.0 license. See the [LICENSE][license_file] file for details.
 
 [license_file]:https://github.com/isLonerism/managed-resource-operator/blob/master/LICENSE
-[bundle_file]:https://github.com/isLonerism/managed-resource-operator/blob/master/deploy/bundle.yaml
-[bundle_dir]:https://github.com/isLonerism/managed-resource-operator/tree/master/deploy
