@@ -104,7 +104,9 @@ The operator effectively bypasses the RBAC permissions defined within Kubernetes
 
 ## Deployment
 
-Deploying Managed Resource Operator within your cluster is pretty straightforward. Note that the operator will need to be deployed in the **managed-resource-operator-system** namespace.
+Deploying Managed Resource Operator within your cluster is pretty straightforward. Note:
+- The operator will need to be deployed in the **managed-resource-operator-system** namespace.
+- `make deploy` and `make certs` commands will attempt to **create and sign the webhook certificate using your cluster's CA**
 
 #### Prerequisites
 
@@ -127,7 +129,7 @@ This assumes your cluster does not have direct connection to the Internet.
 3. Transfer the repository folder and the saved images to your target network
 4. Push the operator and kube-rbac-proxy images to a disconnected image registry
 5. Unpack the repository on a disconnected machine logged-in to the cluster and `cd` to that directory
-6. Run `make certs` - **this will create and sign the webhook certificate using your cluster's CA**
+6. Run `make certs`
 7. Substitute the placeholder environment variables within `bundle.yaml` with actual certificates and create:
 ``` bash
 export WEBHOOK_CA_BASE64=$(cat config/webhook/certs/ca.pem.b64)
