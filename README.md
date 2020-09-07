@@ -139,10 +139,12 @@ This assumes your cluster does not have direct connection to the Internet.
 
 ### Alternative
 
-You can also deploy the operator using a ready [bundle.yaml](deploy/bundle.yaml) file. However, you will still need to transfer both operator images as well as generate and sign webhook TLS certificates on your own. Click [here](deploy/) for more information.
+You can also deploy the operator using a ready [bundle.yaml][bundle_file] file. However, you will still need to transfer both operator images as well as generate and sign webhook TLS certificates on your own. Click [here][bundle_dir] for more information.
 
 ## License
 
 The Managed Resource Operator is released under the Apache 2.0 license. See the [LICENSE][license_file] file for details.
 
-[license_file]:./LICENSE
+[license_file]:https://github.com/isLonerism/managed-resource-operator/blob/master/LICENSE
+[bundle_file]:https://github.com/isLonerism/managed-resource-operator/blob/master/deploy/bundle.yaml
+[bundle_dir]:https://github.com/isLonerism/managed-resource-operator/tree/master/deploy

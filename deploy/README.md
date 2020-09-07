@@ -5,7 +5,7 @@ You can use this ready `bundle.yaml` file to deploy the Managed Resource Operato
 ### Step-by-Step
 
 1. If needed, retag and push the operator image as well as the kube-rbac-proxy image to your registry and edit the image names within `bundle.yaml` accordingly.
-2. Generate a certificate signing request using the provided configuration file located at [cert/req.conf](../cert/req.conf):
+2. Generate a certificate signing request using the provided configuration file located at [cert/req.conf][req_file]:
 
 ``` bash
 openssl req -nodes -newkey rsa:2048 -keyout tls.key -out tls.csr -config req.conf
@@ -21,3 +21,5 @@ export WEBHOOK_TLS_CRT_BASE64=$(cat tls.crt | base64 -w0)
 export WEBHOOK_TLS_KEY_BASE64=$(cat tls.key | base64 -w0)
 envsubst < bundle.yaml | kubectl create -f -
 ```
+
+[req_file]:https://github.com/isLonerism/managed-resource-operator/blob/master/cert/req.conf
