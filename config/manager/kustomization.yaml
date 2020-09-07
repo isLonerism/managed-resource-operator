@@ -4,5 +4,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: docker.io/vladpbr/mro
-  newTag: 0.1.0
+  newName: docker.io/vladpbr/managed-resource-operator
+  newTag: 0.1.0-dev
