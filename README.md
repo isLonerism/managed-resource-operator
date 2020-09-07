@@ -125,7 +125,7 @@ This assumes your cluster is connected to the Internet.
 This assumes your cluster does not have direct connection to the Internet.
 
 1. Clone/Download this repostory
-2. `docker pull` and `docker save` the operator image (`docker.io/vladpbr/managed-resource-operator:0.1.0`) and kube-rbac-proxy image (`gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0`)
+2. `docker pull` and `docker save` the operator image (`docker.io/vladpbr/managed-resource-operator:latest`) and kube-rbac-proxy image (`gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0`)
 3. Transfer the repository folder and the saved images to your target network
 4. Push the operator and kube-rbac-proxy images to a disconnected image registry
 5. Unpack the repository on a disconnected machine logged-in to the cluster and `cd` to that directory
