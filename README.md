@@ -124,7 +124,7 @@ This assumes your cluster does not have direct connection to the Internet.
 
 1. Clone/Download this repostory to a regular machine with Internet connection and go 1.13+, then change your current directory to the destination directory
 2. Run `make controller-gen` and `make kustomize`
-3. `docker pull` and `docker save` the operator image (`docker.io/vladpbr/mro:0.1.0`) and kube-rbac-proxy image (`gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0`)
+3. `docker pull` and `docker save` the operator image (`docker.io/vladpbr/managed-resource-operator:0.1.0`) and kube-rbac-proxy image (`gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0`)
 4. Transfer the following files to your target network:
    - controller-gen binary (`which controller-gen`)
    - kustomize binary (`which kustomize`)
