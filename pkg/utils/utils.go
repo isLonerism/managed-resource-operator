@@ -81,8 +81,7 @@ var sourceFunctions = map[string]func(SourceStruct) ([]byte, error){
 	"Object": getManagedResourceBytesByObject,
 }
 
-// GetManagedResourceBytes returns the managed object yaml as bytes
-func GetManagedResourceBytes(sourceStruct SourceStruct) ([]byte, error) {
+func getManagedResourceBytes(sourceStruct SourceStruct) ([]byte, error) {
 
 	// Init resource bytes
 	var managedResourceBytes []byte
@@ -153,7 +152,7 @@ func getManagedResourceBytesByObject(sourceStruct SourceStruct) ([]byte, error) 
 func ProcessSource(source SourceStruct) ([]byte, *ManagedResourceStruct, runtime.Object, types.NamespacedName, error) {
 
 	// Get managed resource bytes
-	managedResourceBytes, err := GetManagedResourceBytes(source)
+	managedResourceBytes, err := getManagedResourceBytes(source)
 	if err != nil {
 		return nil, nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to read the source: " + err.Error())
 	} else if managedResourceBytes == nil {
