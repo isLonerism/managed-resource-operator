@@ -2,6 +2,7 @@ apiVersion: paas.il/v1beta1
 kind: ManagedResource
 metadata:
   name: managedresource-sample
+  namespace: default
 spec:
   source:
-    url: "https://raw.githubusercontent.com/isLonerism/managed-resource-operator/master/examples/apiextensions_v1beta1_tests.example.com.yaml"
+    url: "https://raw.githubusercontent.com/vlad-pbr/managed-resource-operator/master/examples/objects/apiextensions_v1beta1_tests.example.com.yaml"
