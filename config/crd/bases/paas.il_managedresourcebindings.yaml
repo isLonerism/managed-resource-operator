@@ -40,6 +40,54 @@ spec:
         spec:
           description: ManagedResourceBindingSpec defines the desired state of ManagedResourceBinding
           properties:
+            items:
+              items:
+                description: ManagedResourceBindingItem is a kubernetes object and
+                  its permission verbs
+                properties:
+                  object:
+                    description: ManagedResourceStruct is a reference to an object
+                      to be managed
+                    properties:
+                      kind:
+                        maxLength: 63
+                        pattern: (^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$)|(^[*]$)
+                        type: string
+                      metadata:
+                        description: MetadataStruct is a stripped metadata object
+                        properties:
+                          name:
+                            maxLength: 253
+                            pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$)|(^[*]$)
+                            type: string
+                          namespace:
+                            description: Namespace is an alias for a namespace string
+                            maxLength: 63
+                            pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?$)|(^[*]$)
+                            type: string
+                        required:
+                        - name
+                        type: object
+                    required:
+                    - kind
+                    - metadata
+                    type: object
+                  verbs:
+                    items:
+                      description: Verb is an alias for a permission verb string
+                      enum:
+                      - create
+                      - update
+                      - delete
+                      type: string
+                    minItems: 1
+                    type: array
+                required:
+                - object
+                - verbs
+                type: object
+              minItems: 1
+              type: array
             namespaces:
               items:
                 description: Namespace is an alias for a namespace string
@@ -48,39 +96,9 @@ spec:
                 type: string
               minItems: 1
               type: array
-            objects:
-              items:
-                description: ManagedResourceStruct is a reference to an object to
-                  be managed
-                properties:
-                  kind:
-                    maxLength: 63
-                    pattern: (^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$)|(^[*]$)
-                    type: string
-                  metadata:
-                    description: MetadataStruct is a stripped metadata object
-                    properties:
-                      name:
-                        maxLength: 253
-                        pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?([.][a-z0-9]([-a-z0-9]*[a-z0-9])?)*$)|(^[*]$)
-                        type: string
-                      namespace:
-                        description: Namespace is an alias for a namespace string
-                        maxLength: 63
-                        pattern: (^[a-z0-9]([-a-z0-9]*[a-z0-9])?$)|(^[*]$)
-                        type: string
-                    required:
-                    - name
-                    type: object
-                required:
-                - kind
-                - metadata
-                type: object
-              minItems: 1
-              type: array
           required:
+          - items
           - namespaces
-          - objects
           type: object
         status:
           description: ManagedResourceBindingStatus defines the observed state of

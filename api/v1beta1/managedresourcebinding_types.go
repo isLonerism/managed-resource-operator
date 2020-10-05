@@ -22,11 +22,19 @@ import (
 	"operator/pkg/utils"
 )
 
+// ManagedResourceBindingItem is a kubernetes object and its permission verbs
+type ManagedResourceBindingItem struct {
+	Object utils.ManagedResourceStruct `json:"object"`
+
+	// +kubebuilder:validation:MinItems=1
+	Verbs []utils.Verb `json:"verbs"`
+}
+
 // ManagedResourceBindingSpec defines the desired state of ManagedResourceBinding
 type ManagedResourceBindingSpec struct {
 
 	// +kubebuilder:validation:MinItems=1
-	Objects []utils.ManagedResourceStruct `json:"objects"`
+	Items []ManagedResourceBindingItem `json:"items"`
 
 	// +kubebuilder:validation:MinItems=1
 	Namespaces []utils.Namespace `json:"namespaces"`

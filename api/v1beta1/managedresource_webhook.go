@@ -27,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
@@ -75,57 +74,65 @@ func getClient() client.Client {
 	return k8sClient
 }
 
-func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespace) (bool, error) {
+func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespace, verb utils.Verb) error {
+
+	// 'contains' function for string slices
+	contains := func(list interface{}, match interface{}) bool {
+		slice := reflect.ValueOf(list)
+
+		for i := 0; i < slice.Len(); i++ {
+			if slice.Index(i).String() == reflect.ValueOf(match).String() {
+				return true
+			}
+		}
+
+		return false
+	}
 
 	// Get flat map from target struct
 	targetMap, err := flatten.Flatten(structs.Map(r), "", flatten.DotStyle)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	// List all bindings
 	bindings := &ManagedResourceBindingList{}
 	if err := getClient().List(context.Background(), bindings, &client.ListOptions{}); err != nil {
-		return false, err
+		return err
 	}
 
+	// Iterate bindings
 	for _, binding := range bindings.Items {
 
-		// Check if namespace is present
-		for _, namespace := range binding.Spec.Namespaces {
-			if namespace == "*" || namespace == crNamespace {
+		if contains(binding.Spec.Namespaces, crNamespace) || contains(binding.Spec.Namespaces, "*") {
 
-				// Check if object is present
-				for _, object := range binding.Spec.Objects {
+			// Check if object is present
+			for _, item := range binding.Spec.Items {
 
-					// Get flat map from object struct
-					objectMap, err := flatten.Flatten(structs.Map(object), "", flatten.DotStyle)
-					if err != nil {
-						return false, err
-					}
-
-					// Find matching object
-					match := true
-					for key, value := range objectMap {
-						if value != "*" && value != targetMap[key] {
-							match = false
-							break
-						}
-					}
-
-					// Allow creation if match found
-					if match {
-						return true, nil
-					}
-
+				// Get flat map from object struct
+				objectMap, err := flatten.Flatten(structs.Map(item.Object), "", flatten.DotStyle)
+				if err != nil {
+					return err
 				}
 
-				break
+				// Find matching object
+				match := true
+				for key, value := range objectMap {
+					if value != "*" && value != targetMap[key] {
+						match = false
+						break
+					}
+				}
+
+				// Allow if match and verb are found
+				if match && contains(item.Verbs, verb) {
+					return nil
+				}
 			}
 		}
 	}
 
-	return false, nil
+	return errors.New("permission denied")
 }
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
@@ -175,23 +182,14 @@ func (r *ManagedResource) ValidateCreate() error {
 		return err
 	}
 
-	// -- Check permissions ---
+	// -- Check permissions --
 
-	// Check for permission
-	allowed, err := checkPermissions(newManagedResourceStruct, utils.Namespace(r.Namespace))
-	if err != nil {
+	// Check for creation permission
+	if err := checkPermissions(newManagedResourceStruct, utils.Namespace(r.Namespace), utils.VerbCreate); err != nil {
 		return err
-	} else if !allowed {
-		return errors.New("permission denied")
 	}
 
 	// -- Ensure object does not already exist --
-
-	// Get managed resource key
-	newManagedResourceKey, err := client.ObjectKeyFromObject(r)
-	if err != nil {
-		return err
-	}
 
 	// Try getting object from cluster
 	clusterObject := newManagedObject.DeepCopyObject()
@@ -201,9 +199,7 @@ func (r *ManagedResource) ValidateCreate() error {
 			return err
 		}
 
-		// If exists - check if managed by the current managed resource CR
-	} else if clusterObject.(controllerutil.Object).GetAnnotations() == nil ||
-		clusterObject.(controllerutil.Object).GetAnnotations()[utils.ManagedResourceAnnotation] != newManagedResourceKey.String() {
+	} else {
 		return errors.New("object already exists")
 	}
 
@@ -222,10 +218,6 @@ func (r *ManagedResource) ValidateCreate() error {
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 	managedresourcelog.Info("validate update", "name", r.Name)
-
-	if err := r.ValidateCreate(); err != nil {
-		return err
-	}
 
 	// Old CR bytes
 	var oldManagedResourceBytesBuffer bytes.Buffer
@@ -249,6 +241,11 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 		return err
 	}
 
+	// Check update permissions
+	if err := checkPermissions(oldManagedResourceStruct, utils.Namespace(r.Namespace), utils.VerbUpdate); err != nil {
+		return err
+	}
+
 	// Ensure that the structs are equal
 	if !reflect.DeepEqual(newManagedResourceStruct, oldManagedResourceStruct) {
 		return errors.New("new managed resource must manage the same object as the old managed resource")
@@ -262,8 +259,13 @@ func (r *ManagedResource) ValidateDelete() error {
 	managedresourcelog.Info("validate delete", "name", r.Name)
 
 	// Process given object
-	_, _, managedObject, _, err := utils.ProcessSource(r.Spec.Source)
+	_, managedResourceStruct, managedObject, _, err := utils.ProcessSource(r.Spec.Source)
 	if err != nil {
+		return err
+	}
+
+	// Check deletion permissions
+	if err := checkPermissions(managedResourceStruct, utils.Namespace(r.Namespace), utils.VerbDelete); err != nil {
 		return err
 	}
 
