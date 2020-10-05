@@ -41,6 +41,9 @@ import (
 // log is for logging in this package.
 var managedresourcelog = logf.Log.WithName("managedresource-resource")
 
+// k8sClient is for querying API for dry-runs and bindings
+var k8sClient client.Client = nil
+
 // SetupWebhookWithManager registers webhooks with the controller manager
 func (r *ManagedResource) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
@@ -53,23 +56,23 @@ func (r *ManagedResource) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 var _ webhook.Defaulter = &ManagedResource{}
 
-func getClient() (client.Client, error) {
+func getClient() client.Client {
 
-	// Add new resources to scheme
-	scheme := runtime.NewScheme()
-	if err := AddToScheme(scheme); err != nil {
-		return nil, err
+	if k8sClient == nil {
+
+		// Add new resources to scheme
+		scheme := runtime.NewScheme()
+		if err := AddToScheme(scheme); err != nil {
+			panic(err)
+		}
+
+		// Init kubernetes client
+		k8sClient, _ = client.New(ctrl.GetConfigOrDie(), client.Options{
+			Scheme: scheme,
+		})
 	}
 
-	// Init client
-	k8sClient, err := client.New(ctrl.GetConfigOrDie(), client.Options{
-		Scheme: scheme,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return k8sClient, nil
+	return k8sClient
 }
 
 func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespace) (bool, error) {
@@ -80,15 +83,9 @@ func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespac
 		return false, err
 	}
 
-	// Get updated k8s client
-	k8sClient, err := getClient()
-	if err != nil {
-		return false, err
-	}
-
 	// List all bindings
 	bindings := &ManagedResourceBindingList{}
-	if err := k8sClient.List(context.Background(), bindings, &client.ListOptions{}); err != nil {
+	if err := getClient().List(context.Background(), bindings, &client.ListOptions{}); err != nil {
 		return false, err
 	}
 
@@ -190,12 +187,6 @@ func (r *ManagedResource) ValidateCreate() error {
 
 	// -- Ensure object does not already exist --
 
-	// Get updated k8s client
-	k8sClient, err := getClient()
-	if err != nil {
-		return err
-	}
-
 	// Get managed resource key
 	newManagedResourceKey, err := client.ObjectKeyFromObject(r)
 	if err != nil {
@@ -204,7 +195,7 @@ func (r *ManagedResource) ValidateCreate() error {
 
 	// Try getting object from cluster
 	clusterObject := newManagedObject.DeepCopyObject()
-	if err := k8sClient.Get(context.Background(), newManagedObjectKey, clusterObject); err != nil {
+	if err := getClient().Get(context.Background(), newManagedObjectKey, clusterObject); err != nil {
 
 		if !apierrors.IsNotFound(err) {
 			return err
@@ -219,7 +210,7 @@ func (r *ManagedResource) ValidateCreate() error {
 	// -- Ensure there are no other errors during creation --
 
 	// Try dry-run creation
-	if err := k8sClient.Create(context.Background(), newManagedObject, &client.CreateOptions{
+	if err := getClient().Create(context.Background(), newManagedObject, &client.CreateOptions{
 		DryRun: []string{"All"},
 	}); err != nil && !apierrors.IsAlreadyExists(err) {
 		return err
@@ -276,14 +267,8 @@ func (r *ManagedResource) ValidateDelete() error {
 		return err
 	}
 
-	// Get new k8s client
-	k8sClient, err := getClient()
-	if err != nil {
-		return err
-	}
-
 	// Try dry-run deletion of managed object
-	if err := k8sClient.Delete(context.Background(), managedObject, &client.DeleteOptions{
+	if err := getClient().Delete(context.Background(), managedObject, &client.DeleteOptions{
 		DryRun: []string{"All"},
 	}); err != nil && !apierrors.IsNotFound(err) {
 		return err
