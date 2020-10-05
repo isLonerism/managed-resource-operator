@@ -173,7 +173,7 @@ func ProcessSource(source SourceStruct) ([]byte, *ManagedResourceStruct, runtime
 	// Unmarshal bytes to managed resource struct
 	managedResourceStruct := &ManagedResourceStruct{}
 	if err := yaml.Unmarshal(managedResourceBytes, managedResourceStruct); err != nil {
-		return nil, nil, nil, types.NamespacedName{}, errors.New("an error occured while trying to read object data: " + err.Error())
+		return nil, nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to read object data: " + err.Error())
 	}
 
 	// Decode managed resource bytes to runtime object
