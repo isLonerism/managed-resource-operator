@@ -150,27 +150,33 @@ func getManagedResourceBytesByObject(sourceStruct SourceStruct) ([]byte, error) 
 }
 
 // ProcessSource reads ManagedObject source struct and returns its relevant formats
-func ProcessSource(source SourceStruct) ([]byte, runtime.Object, types.NamespacedName, error) {
+func ProcessSource(source SourceStruct) ([]byte, *ManagedResourceStruct, runtime.Object, types.NamespacedName, error) {
 
 	// Get managed resource bytes
 	managedResourceBytes, err := GetManagedResourceBytes(source)
 	if err != nil {
-		return nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to read the source: " + err.Error())
+		return nil, nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to read the source: " + err.Error())
 	} else if managedResourceBytes == nil {
-		return nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to read the source: a single source must be defined")
+		return nil, nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to read the source: a single source must be defined")
+	}
+
+	// Unmarshal bytes to managed resource struct
+	managedResourceStruct := &ManagedResourceStruct{}
+	if err := yaml.Unmarshal(managedResourceBytes, managedResourceStruct); err != nil {
+		return nil, nil, nil, types.NamespacedName{}, errors.New("an error occured while trying to read object data: " + err.Error())
 	}
 
 	// Decode managed resource bytes to runtime object
 	managedObject, _, err := ObjectSerializer.Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
 	if err != nil {
-		return nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to unmarshal object yaml: " + err.Error())
+		return nil, nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to unmarshal object yaml: " + err.Error())
 	}
 
 	// Get managed object key
 	managedObjectKey, err := client.ObjectKeyFromObject(managedObject)
 	if err != nil {
-		return nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to get object key: " + err.Error())
+		return nil, nil, nil, types.NamespacedName{}, errors.New("an error occurred while trying to get object key: " + err.Error())
 	}
 
-	return managedResourceBytes, managedObject, managedObjectKey, nil
+	return managedResourceBytes, managedResourceStruct, managedObject, managedObjectKey, nil
 }
