@@ -174,22 +174,16 @@ var _ webhook.Validator = &ManagedResource{}
 func (r *ManagedResource) ValidateCreate() error {
 	managedresourcelog.Info("validate create", "name", r.Name)
 
-	// -- Ensure a single source exists --
-
 	// Process object source
 	_, newManagedResourceStruct, newManagedObject, newManagedObjectKey, err := utils.ProcessSource(r.Spec.Source)
 	if err != nil {
 		return err
 	}
 
-	// -- Check permissions --
-
 	// Check for creation permission
 	if err := checkPermissions(newManagedResourceStruct, utils.Namespace(r.Namespace), utils.VerbCreate); err != nil {
 		return err
 	}
-
-	// -- Ensure object does not already exist --
 
 	// Try getting object from cluster
 	clusterObject := newManagedObject.DeepCopyObject()
