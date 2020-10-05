@@ -27,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
@@ -192,12 +191,6 @@ func (r *ManagedResource) ValidateCreate() error {
 
 	// -- Ensure object does not already exist --
 
-	// Get managed resource key
-	newManagedResourceKey, err := client.ObjectKeyFromObject(r)
-	if err != nil {
-		return err
-	}
-
 	// Try getting object from cluster
 	clusterObject := newManagedObject.DeepCopyObject()
 	if err := getClient().Get(context.Background(), newManagedObjectKey, clusterObject); err != nil {
@@ -206,9 +199,7 @@ func (r *ManagedResource) ValidateCreate() error {
 			return err
 		}
 
-		// If exists - check if managed by the current managed resource CR
-	} else if clusterObject.(controllerutil.Object).GetAnnotations() == nil ||
-		clusterObject.(controllerutil.Object).GetAnnotations()[utils.ManagedResourceAnnotation] != newManagedResourceKey.String() {
+	} else {
 		return errors.New("object already exists")
 	}
 
@@ -227,10 +218,6 @@ func (r *ManagedResource) ValidateCreate() error {
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 	managedresourcelog.Info("validate update", "name", r.Name)
-
-	if err := r.ValidateCreate(); err != nil {
-		return err
-	}
 
 	// Old CR bytes
 	var oldManagedResourceBytesBuffer bytes.Buffer
@@ -254,6 +241,11 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 		return err
 	}
 
+	// Check update permissions
+	if err := checkPermissions(oldManagedResourceStruct, utils.Namespace(r.Namespace), utils.VerbUpdate); err != nil {
+		return err
+	}
+
 	// Ensure that the structs are equal
 	if !reflect.DeepEqual(newManagedResourceStruct, oldManagedResourceStruct) {
 		return errors.New("new managed resource must manage the same object as the old managed resource")
@@ -267,8 +259,13 @@ func (r *ManagedResource) ValidateDelete() error {
 	managedresourcelog.Info("validate delete", "name", r.Name)
 
 	// Process given object
-	_, _, managedObject, _, err := utils.ProcessSource(r.Spec.Source)
+	_, managedResourceStruct, managedObject, _, err := utils.ProcessSource(r.Spec.Source)
 	if err != nil {
+		return err
+	}
+
+	// Check deletion permissions
+	if err := checkPermissions(managedResourceStruct, utils.Namespace(r.Namespace), utils.VerbDelete); err != nil {
 		return err
 	}
 
