@@ -3,13 +3,23 @@ kind: ManagedResourceBinding
 metadata:
   name: managedresourcebinding-cm-crd
 spec:
-  objects:
-  - kind: CustomResourceDefinition
-    metadata:
-      name: tests.example.com
-  - kind: ConfigMap
-    metadata:
-      name: "*"
-      namespace: default
+  items:
+  - object:
+      kind: CustomResourceDefinition
+      metadata:
+        name: tests.example.com
+    verbs:
+    - create
+    - update
+    - delete
+  - object:
+      kind: ConfigMap
+      metadata:
+        name: "*"
+        namespace: default
+    verbs:
+    - create
+    - update
+    - delete
   namespaces:
   - "*"
