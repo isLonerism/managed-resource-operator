@@ -236,7 +236,7 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 	if err != nil {
 		return err
 	}
-	_, newManagedResourceStruct, _, _, err := utils.ProcessSource(r.Spec.Source)
+	_, newManagedResourceStruct, newManagedObject, _, err := utils.ProcessSource(r.Spec.Source)
 	if err != nil {
 		return err
 	}
@@ -249,6 +249,15 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 	// Ensure that the structs are equal
 	if !reflect.DeepEqual(newManagedResourceStruct, oldManagedResourceStruct) {
 		return errors.New("new managed resource must manage the same object as the old managed resource")
+	}
+
+	// -- Ensure there are no other errors during update --
+
+	// Try dry-run update
+	if err := getClient().Update(context.Background(), newManagedObject, &client.UpdateOptions{
+		DryRun: []string{"All"},
+	}); err != nil {
+		return err
 	}
 
 	return nil
@@ -269,7 +278,9 @@ func (r *ManagedResource) ValidateDelete() error {
 		return err
 	}
 
-	// Try dry-run deletion of managed object
+	// -- Ensure there are no other errors during deletion --
+
+	// Try dry-run deletion
 	if err := getClient().Delete(context.Background(), managedObject, &client.DeleteOptions{
 		DryRun: []string{"All"},
 	}); err != nil && !apierrors.IsNotFound(err) {
