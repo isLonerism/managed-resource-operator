@@ -80,23 +80,32 @@ kind: ManagedResourceBinding
 metadata:
   name: managedresourcebinding-cm-crd
 spec:
-  objects:
-  - kind: CustomResourceDefinition
-    metadata:
-      name: tests.example.com
-  - kind: ConfigMap
-    metadata:
-      name: "*"
-      namespace: default
+  items:
+  - object:
+      kind: CustomResourceDefinition
+      metadata:
+        name: tests.example.com
+    verbs:
+    - create
+    - update
+  - object:
+      kind: ConfigMap
+      metadata:
+        name: "*"
+        namespace: default
+    verbs:
+    - create
+    - update
+    - delete
   namespaces:
   - "*"
 ```
 
 The following ManagedResourceBinding defines two rules:
-- ANY namespace can manage a CustomResourceDefinition object called "tests.example.com"
-- ANY namespace can manage ANY ConfigMap object within the "default" namespace
+- ANY namespace can CREATE and UPDATE a CustomResourceDefinition object called "tests.example.com"
+- ANY namespace can CREATE, UPDATE and DELETE ANY ConfigMap object within the "default" namespace
 
-Any field within the ManagedResourceBinding can either be a specific value or a wildcard value.
+Any field within the 'object' field as well as the 'namespaces' field can either be a specific value or a wildcard value.
 
 ## A word of caution
 
@@ -110,7 +119,7 @@ Deploying Managed Resource Operator within your cluster is pretty straightforwar
 
 #### Prerequisites
 
-- go 1.13+
+- go 1.13+ (connected deployment only)
 - kubectl (logged-in as cluster-admin)
 
 ### Connected deployment
