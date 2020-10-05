@@ -75,7 +75,7 @@ func getClient() client.Client {
 	return k8sClient
 }
 
-func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespace, verb utils.Verb) (bool, error) {
+func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespace, verb utils.Verb) error {
 
 	// 'contains' function for string slices
 	contains := func(list interface{}, match interface{}) bool {
@@ -93,13 +93,13 @@ func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespac
 	// Get flat map from target struct
 	targetMap, err := flatten.Flatten(structs.Map(r), "", flatten.DotStyle)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	// List all bindings
 	bindings := &ManagedResourceBindingList{}
 	if err := getClient().List(context.Background(), bindings, &client.ListOptions{}); err != nil {
-		return false, err
+		return err
 	}
 
 	// Iterate bindings
@@ -113,7 +113,7 @@ func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespac
 				// Get flat map from object struct
 				objectMap, err := flatten.Flatten(structs.Map(item.Object), "", flatten.DotStyle)
 				if err != nil {
-					return false, err
+					return err
 				}
 
 				// Find matching object
@@ -127,13 +127,13 @@ func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespac
 
 				// Allow if match and verb are found
 				if match && contains(item.Verbs, verb) {
-					return true, nil
+					return nil
 				}
 			}
 		}
 	}
 
-	return false, nil
+	return errors.New("permission denied")
 }
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
@@ -183,14 +183,11 @@ func (r *ManagedResource) ValidateCreate() error {
 		return err
 	}
 
-	// -- Check permissions ---
+	// -- Check permissions --
 
-	// Check for permission
-	allowed, err := checkPermissions(newManagedResourceStruct, utils.Namespace(r.Namespace), utils.VerbCreate)
-	if err != nil {
+	// Check for creation permission
+	if err := checkPermissions(newManagedResourceStruct, utils.Namespace(r.Namespace), utils.VerbCreate); err != nil {
 		return err
-	} else if !allowed {
-		return errors.New("permission denied")
 	}
 
 	// -- Ensure object does not already exist --
