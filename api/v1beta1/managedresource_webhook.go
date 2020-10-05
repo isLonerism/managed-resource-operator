@@ -75,7 +75,20 @@ func getClient() client.Client {
 	return k8sClient
 }
 
-func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespace) (bool, error) {
+func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespace, verb utils.Verb) (bool, error) {
+
+	// 'contains' function for string slices
+	contains := func(list interface{}, match interface{}) bool {
+		slice := reflect.ValueOf(list)
+
+		for i := 0; i < slice.Len(); i++ {
+			if slice.Index(i).String() == reflect.ValueOf(match).String() {
+				return true
+			}
+		}
+
+		return false
+	}
 
 	// Get flat map from target struct
 	targetMap, err := flatten.Flatten(structs.Map(r), "", flatten.DotStyle)
@@ -89,38 +102,33 @@ func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespac
 		return false, err
 	}
 
+	// Iterate bindings
 	for _, binding := range bindings.Items {
 
-		// Check if namespace is present
-		for _, namespace := range binding.Spec.Namespaces {
-			if namespace == "*" || namespace == crNamespace {
+		if contains(binding.Spec.Namespaces, crNamespace) || contains(binding.Spec.Namespaces, "*") {
 
-				// Check if object is present
-				for _, item := range binding.Spec.Items {
+			// Check if object is present
+			for _, item := range binding.Spec.Items {
 
-					// Get flat map from object struct
-					objectMap, err := flatten.Flatten(structs.Map(item.Object), "", flatten.DotStyle)
-					if err != nil {
-						return false, err
-					}
-
-					// Find matching object
-					match := true
-					for key, value := range objectMap {
-						if value != "*" && value != targetMap[key] {
-							match = false
-							break
-						}
-					}
-
-					// Allow creation if match found
-					if match {
-						return true, nil
-					}
-
+				// Get flat map from object struct
+				objectMap, err := flatten.Flatten(structs.Map(item.Object), "", flatten.DotStyle)
+				if err != nil {
+					return false, err
 				}
 
-				break
+				// Find matching object
+				match := true
+				for key, value := range objectMap {
+					if value != "*" && value != targetMap[key] {
+						match = false
+						break
+					}
+				}
+
+				// Allow if match and verb are found
+				if match && contains(item.Verbs, verb) {
+					return true, nil
+				}
 			}
 		}
 	}
@@ -178,7 +186,7 @@ func (r *ManagedResource) ValidateCreate() error {
 	// -- Check permissions ---
 
 	// Check for permission
-	allowed, err := checkPermissions(newManagedResourceStruct, utils.Namespace(r.Namespace))
+	allowed, err := checkPermissions(newManagedResourceStruct, utils.Namespace(r.Namespace), utils.VerbCreate)
 	if err != nil {
 		return err
 	} else if !allowed {
