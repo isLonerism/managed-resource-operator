@@ -25,6 +25,13 @@ const (
 	StateError   = "Error"
 )
 
+// Valid verbs for managed resource bindings
+const (
+	VerbCreate = "create"
+	VerbUpdate = "update"
+	VerbDelete = "delete"
+)
+
 // ObjectSerializer is a runtime object/byte stream codec
 var ObjectSerializer = kubeyaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme)
 
@@ -35,6 +42,10 @@ var ManagedResourceAnnotation = "managedresources.paas.il/owner"
 // +kubebuilder:validation:MaxLength=63
 // +kubebuilder:validation:Pattern="(^[a-z0-9]([-a-z0-9]*[a-z0-9])?$)|(^[*]$)"
 type Namespace string
+
+// Verb is an alias for a permission verb string
+// +kubebuilder:validation:Enum=create;update;delete
+type Verb string
 
 // MetadataStruct is a stripped metadata object
 type MetadataStruct struct {
