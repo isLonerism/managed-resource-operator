@@ -28,8 +28,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-
 	paasv1beta1 "operator/api/v1beta1"
 
 	"operator/pkg/utils"
@@ -81,20 +79,11 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Get managed resource bytes
-	managedResourceBytes, err := utils.GetManagedResourceBytes(managedResource.Spec.Source)
+	// Process object source
+	_, _, managedObject, managedObjectKey, err := utils.ProcessSource(managedResource.Spec.Source)
 	if err != nil {
 		log.Error(err)
-		return finishReconciliation(ctrl.Result{},
-			errors.New("an error occurred while trying to read the source: "+err.Error()), managedResource, r)
-	}
-
-	// Decode managed resource bytes to runtime object
-	managedObject, _, err := utils.ObjectSerializer.Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
-	if err != nil {
-		log.Error(err)
-		return finishReconciliation(ctrl.Result{},
-			errors.New("an error occurred while trying to unmarshal object yaml: "+err.Error()), managedResource, r)
+		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
 	}
 
 	managedObjectFinalizer := "managedobject.finalizers.managedresources.paas.il"
@@ -128,14 +117,6 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	}
 	managedResourceAnnotations[utils.ManagedResourceAnnotation] = req.NamespacedName.String()
 	managedObject.(controllerutil.Object).SetAnnotations(managedResourceAnnotations)
-
-	// Get managed resource object key
-	managedObjectKey, err := client.ObjectKeyFromObject(managedObject)
-	if err != nil {
-		log.Error(err)
-		return finishReconciliation(ctrl.Result{},
-			errors.New("an error occurred while trying to get object key: "+err.Error()), managedResource, r)
-	}
 
 	// Try getting object from cluster
 	clusterObject := managedObject.DeepCopyObject()

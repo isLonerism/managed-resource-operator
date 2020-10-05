@@ -24,7 +24,6 @@ import (
 	"reflect"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -137,8 +136,8 @@ func (r *ManagedResource) Default() {
 	managedresourcelog.Info("default", "name", r.Name)
 
 	// Get managed resource bytes
-	managedResourceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
-	if err != nil || (err == nil && managedResourceBytes == nil) {
+	managedResourceBytes, _, _, _, err := utils.ProcessSource(r.Spec.Source)
+	if err != nil {
 		return
 	}
 
@@ -172,20 +171,14 @@ func (r *ManagedResource) ValidateCreate() error {
 	managedresourcelog.Info("validate create", "name", r.Name)
 
 	// -- Ensure a single source exists --
-	newManagedResourceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
+
+	// Process object source
+	_, newManagedResourceStruct, newManagedObject, newManagedObjectKey, err := utils.ProcessSource(r.Spec.Source)
 	if err != nil {
 		return err
-	} else if newManagedResourceBytes == nil {
-		return errors.New("a single source must be defined")
 	}
 
 	// -- Check permissions ---
-
-	// Unmarshal object to struct
-	newManagedResourceStruct := &utils.ManagedResourceStruct{}
-	if err := yaml.Unmarshal(newManagedResourceBytes, newManagedResourceStruct); err != nil {
-		return err
-	}
 
 	// Check for permission
 	allowed, err := checkPermissions(newManagedResourceStruct, utils.Namespace(r.Namespace))
@@ -199,18 +192,6 @@ func (r *ManagedResource) ValidateCreate() error {
 
 	// Get updated k8s client
 	k8sClient, err := getClient()
-	if err != nil {
-		return err
-	}
-
-	// Decode managed object
-	newManagedObject, _, err := utils.ObjectSerializer.Decode(newManagedResourceBytes, nil, &unstructured.Unstructured{})
-	if err != nil {
-		return err
-	}
-
-	// Get object key
-	newManagedObjectKey, err := client.ObjectKeyFromObject(newManagedObject)
 	if err != nil {
 		return err
 	}
@@ -267,23 +248,13 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 		return err
 	}
 
-	// Get both objects as bytes
-	oldManagedResourceBytes, err := utils.GetManagedResourceBytes(oldManagedResource.Spec.Source)
+	// Process both objects
+	_, oldManagedResourceStruct, _, _, err := utils.ProcessSource(oldManagedResource.Spec.Source)
 	if err != nil {
 		return err
 	}
-	newManagedResourceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
+	_, newManagedResourceStruct, _, _, err := utils.ProcessSource(r.Spec.Source)
 	if err != nil {
-		return err
-	}
-
-	// Unmarshal both objects to structs
-	oldManagedResourceStruct := &utils.ManagedResourceStruct{}
-	if err := yaml.Unmarshal(oldManagedResourceBytes, oldManagedResourceStruct); err != nil {
-		return err
-	}
-	newManagedResourceStruct := &utils.ManagedResourceStruct{}
-	if err := yaml.Unmarshal(newManagedResourceBytes, newManagedResourceStruct); err != nil {
 		return err
 	}
 
@@ -299,14 +270,8 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 func (r *ManagedResource) ValidateDelete() error {
 	managedresourcelog.Info("validate delete", "name", r.Name)
 
-	// Get object bytes
-	managedResourceBytes, err := utils.GetManagedResourceBytes(r.Spec.Source)
-	if err != nil {
-		return err
-	}
-
-	// Get runtime object from bytes
-	managedObject, _, err := utils.ObjectSerializer.Decode(managedResourceBytes, nil, &unstructured.Unstructured{})
+	// Process given object
+	_, _, managedObject, _, err := utils.ProcessSource(r.Spec.Source)
 	if err != nil {
 		return err
 	}
