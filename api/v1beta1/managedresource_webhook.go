@@ -153,7 +153,7 @@ func (r *ManagedResource) Default() {
 		Raw: managedResourceBytesJSON,
 	}
 
-	// New source struct with only the YAML field defined
+	// New source struct with only the Object field defined
 	r.Spec.Source = utils.SourceStruct{
 		Object: objectSource,
 	}

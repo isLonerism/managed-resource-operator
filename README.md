@@ -1,12 +1,12 @@
 # Managed Resource Operator
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/isLonerism/managed-resource-operator)](https://goreportcard.com/report/github.com/isLonerism/managed-resource-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/vlad-pbr/managed-resource-operator)](https://goreportcard.com/report/github.com/vlad-pbr/managed-resource-operator)
 
 A Kubernetes operator for management of specific resources by regular users outside the RBAC permission scope.
 
 ## How it works
 
-Currently there is no way to set RBAC permissions for a specific resource - the only way to allow users to create their own CRDs, for example, is to grant permissions to create any and as much CRDs as they wish. Managed Resource Operator lets you grant permissions for specific namespaces to create, edit and delete any kind of resource based on its kind, name and namespace. The operator acts as a proxy for resource management so cluster administrators could give RBAC permissions to the operator instead of the user.
+Currently there is no way to set RBAC permissions for a specific resource - the only way to allow users to create their own CRDs, for example, is to grant permissions to create any and as many CRDs as they wish. Managed Resource Operator lets you grant permissions for specific namespaces to create, edit and delete any kind of resource based on its kind, name and namespace. The operator acts as a proxy for resource management so cluster administrators could give RBAC permissions to the operator instead of the user.
 
 ## Resources
 
@@ -45,7 +45,7 @@ metadata:
   name: managedresource-tests.example.com
 spec:
   source:
-    url: "https://raw.githubusercontent.com/isLonerism/managed-resource-operator/master/examples/objects/apiextensions_v1beta1_tests.example.com.yaml"
+    url: "https://raw.githubusercontent.com/vlad-pbr/managed-resource-operator/master/examples/objects/apiextensions_v1beta1_tests.example.com.yaml"
 ```
 
 - Embedded resource:
@@ -142,4 +142,4 @@ envsubst < deploy/bundle.yaml | kubectl create -f -
 
 The Managed Resource Operator is released under the Apache 2.0 license. See the [LICENSE][license_file] file for details.
 
-[license_file]:https://github.com/isLonerism/managed-resource-operator/blob/master/LICENSE
+[license_file]:https://github.com/vlad-pbr/managed-resource-operator/blob/master/LICENSE
