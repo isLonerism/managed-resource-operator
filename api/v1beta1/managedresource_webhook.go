@@ -96,10 +96,10 @@ func checkPermissions(r *utils.ManagedResourceStruct, crNamespace utils.Namespac
 			if namespace == "*" || namespace == crNamespace {
 
 				// Check if object is present
-				for _, object := range binding.Spec.Objects {
+				for _, item := range binding.Spec.Items {
 
 					// Get flat map from object struct
-					objectMap, err := flatten.Flatten(structs.Map(object), "", flatten.DotStyle)
+					objectMap, err := flatten.Flatten(structs.Map(item.Object), "", flatten.DotStyle)
 					if err != nil {
 						return false, err
 					}
