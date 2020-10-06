@@ -43,28 +43,6 @@ type ManagedResourceReconciler struct {
 // +kubebuilder:rbac:groups=paas.il,resources=managedresources,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=paas.il,resources=managedresources/status,verbs=get;update;patch
 
-func finishReconciliation(result ctrl.Result, err error, managedResource *paasv1beta1.ManagedResource, r *ManagedResourceReconciler) (ctrl.Result, error) {
-	if err != nil {
-		(*managedResource).Status.State = utils.StateError
-		(*managedResource).Status.Info = err.Error()
-	} else {
-		(*managedResource).Status.State = utils.StateManaged
-		(*managedResource).Status.Info = "Managing resource"
-	}
-
-	if err := r.Status().Update(context.Background(), managedResource); err != nil {
-		log.Error(err)
-		return ctrl.Result{}, err
-	}
-
-	if err := r.Update(context.Background(), managedResource); err != nil {
-		log.Error(err)
-		return ctrl.Result{}, err
-	}
-
-	return result, nil
-}
-
 // Reconcile reconciles a received resource
 func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
@@ -83,7 +61,7 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	_, _, managedObject, managedObjectKey, err := utils.ProcessSource(managedResource.Spec.Source)
 	if err != nil {
 		log.Error(err)
-		return finishReconciliation(ctrl.Result{}, err, managedResource, r)
+		return ctrl.Result{}, err
 	}
 
 	managedObjectFinalizer := "managedobject.finalizers.managedresources.paas.il"
@@ -127,8 +105,7 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 			// Create the managed resource
 			if err := r.Client.Create(ctx, managedObject); err != nil {
 				log.Error(err)
-				return finishReconciliation(ctrl.Result{},
-					errors.New("an error occurred while trying to create the object: "+err.Error()), managedResource, r)
+				return ctrl.Result{}, errors.New("an error occurred while trying to create the object: " + err.Error())
 			}
 
 		} else {
@@ -144,12 +121,17 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		// Update the managed resource
 		if err := r.Client.Update(ctx, managedObject); err != nil {
 			log.Error(err)
-			return finishReconciliation(ctrl.Result{},
-				errors.New("an error occurred while trying to update the object: "+err.Error()), managedResource, r)
+			return ctrl.Result{}, errors.New("an error occurred while trying to update the object: " + err.Error())
 		}
 	}
 
-	return finishReconciliation(ctrl.Result{}, nil, managedResource, r)
+	// Update managed resource with finalizer field
+	if err := r.Update(context.Background(), managedResource); err != nil {
+		log.Error(err)
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{}, nil
 }
 
 // SetupWithManager registers controller with the manager

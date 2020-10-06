@@ -15,9 +15,6 @@ spec:
   - JSONPath: .spec.source.object.metadata.namespace
     name: Namespace
     type: string
-  - JSONPath: .status.state
-    name: State
-    type: string
   group: paas.il
   names:
     kind: ManagedResource
@@ -68,15 +65,6 @@ spec:
           type: object
         status:
           description: ManagedResourceStatus defines the observed state of ManagedResource
-          properties:
-            info:
-              type: string
-            state:
-              description: ManagedState is a custom state type for a managed resource
-              type: string
-          required:
-          - info
-          - state
           type: object
       type: object
   version: v1beta1

@@ -29,8 +29,6 @@ type ManagedResourceSpec struct {
 
 // ManagedResourceStatus defines the observed state of ManagedResource
 type ManagedResourceStatus struct {
-	State utils.ManagedState `json:"state"`
-	Info  string             `json:"info"`
 }
 
 // +kubebuilder:object:root=true
@@ -38,7 +36,6 @@ type ManagedResourceStatus struct {
 // +kubebuilder:resource:shortName=mr,scope=Namespaced
 // +kubebuilder:printcolumn:name="Kind",type=string,JSONPath=`.spec.source.object.kind`
 // +kubebuilder:printcolumn:name="Namespace",type=string,JSONPath=`.spec.source.object.metadata.namespace`
-// +kubebuilder:printcolumn:name="State",type=string,JSONPath=`.status.state`
 
 // ManagedResource is the Schema for the managedresources API
 type ManagedResource struct {

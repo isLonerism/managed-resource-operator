@@ -161,10 +161,6 @@ func (r *ManagedResource) Default() {
 	r.Spec.Source = utils.SourceStruct{
 		Object: objectSource,
 	}
-
-	// Set object state as 'pending'
-	r.Status.State = utils.StatePending
-	r.Status.Info = "Object is pending for creation"
 }
 
 // +kubebuilder:webhook:verbs=create;update;delete,path=/validate-paas-il-v1beta1-managedresource,mutating=false,failurePolicy=fail,groups=paas.il,resources=managedresources,versions=v1beta1,name=vmanagedresource.kb.io

@@ -15,16 +15,6 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// ManagedState is a custom state type for a managed resource
-type ManagedState string
-
-// Valid states for a managed resource
-const (
-	StateManaged = "Managed"
-	StatePending = "Pending"
-	StateError   = "Error"
-)
-
 // Valid verbs for managed resource bindings
 const (
 	VerbCreate = "create"
