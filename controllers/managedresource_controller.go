@@ -66,17 +66,17 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 
 	managedObjectFinalizer := "managedobject.finalizers.managedresources.paas.il"
 
-	// Delete the managed resource if its CR is being deleted
+	// Delete the managed object if its CR is being deleted
 	if !managedResource.DeletionTimestamp.IsZero() && controllerutil.ContainsFinalizer(managedResource, managedObjectFinalizer) {
 		controllerutil.RemoveFinalizer(managedResource, managedObjectFinalizer)
 
-		// Delete resource if it exists
+		// Delete object if it exists
 		if err := r.Client.Delete(ctx, managedObject); err != nil && !apierrors.IsNotFound(err) {
 			log.Error(err)
 			return ctrl.Result{}, err
 		}
 
-		// Update finalizers field
+		// Update finalizers field for CR
 		if err := r.Client.Update(ctx, managedResource); err != nil {
 			log.Error(err)
 			return ctrl.Result{}, err
@@ -88,7 +88,7 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 	// Add finalizer for managed resource
 	controllerutil.AddFinalizer(managedResource, managedObjectFinalizer)
 
-	// Annotate managed resource with its owner namespace
+	// Annotate managed object with its owner namespace and name
 	managedResourceAnnotations := managedObject.(controllerutil.Object).GetAnnotations()
 	if managedResourceAnnotations == nil {
 		managedResourceAnnotations = make(map[string]string)
@@ -102,7 +102,7 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 
 		if apierrors.IsNotFound(err) {
 
-			// Create the managed resource
+			// Create the managed object
 			if err := r.Client.Create(ctx, managedObject); err != nil {
 				log.Error(err)
 				return ctrl.Result{}, errors.New("an error occurred while trying to create the object: " + err.Error())
@@ -118,7 +118,7 @@ func (r *ManagedResourceReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		// Insert .metadata.resourceVersion field into managed object
 		managedObject.(controllerutil.Object).SetResourceVersion(clusterObject.(controllerutil.Object).GetResourceVersion())
 
-		// Update the managed resource
+		// Update the managed object
 		if err := r.Client.Update(ctx, managedObject); err != nil {
 			log.Error(err)
 			return ctrl.Result{}, errors.New("an error occurred while trying to update the object: " + err.Error())
