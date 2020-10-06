@@ -203,7 +203,7 @@ func (r *ManagedResource) ValidateCreate() error {
 	// Try dry-run creation
 	if err := getClient().Create(context.Background(), newManagedObject, &client.CreateOptions{
 		DryRun: []string{"All"},
-	}); err != nil && !apierrors.IsAlreadyExists(err) {
+	}); err != nil {
 		return err
 	}
 
