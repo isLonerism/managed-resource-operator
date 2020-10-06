@@ -27,6 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
@@ -213,6 +214,11 @@ func (r *ManagedResource) ValidateCreate() error {
 func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 	managedresourcelog.Info("validate update", "name", r.Name)
 
+	// Skip validation if resource is being deleted
+	if !r.DeletionTimestamp.IsZero() {
+		return nil
+	}
+
 	// Old CR bytes
 	var oldManagedResourceBytesBuffer bytes.Buffer
 	if err := utils.ObjectSerializer.Encode(old, io.Writer(&oldManagedResourceBytesBuffer)); err != nil {
@@ -226,7 +232,7 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 	}
 
 	// Process both objects
-	_, oldManagedResourceStruct, _, _, err := utils.ProcessSource(oldManagedResource.Spec.Source)
+	_, oldManagedResourceStruct, _, oldManagedObjectKey, err := utils.ProcessSource(oldManagedResource.Spec.Source)
 	if err != nil {
 		return err
 	}
@@ -241,6 +247,13 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 	}
 
 	// -- Ensure there are no other errors during update --
+
+	// Get the old object's resource version and set it for the new object
+	oldManagedObject := newManagedObject.DeepCopyObject()
+	if err := getClient().Get(context.Background(), oldManagedObjectKey, oldManagedObject); err != nil {
+		return err
+	}
+	newManagedObject.(controllerutil.Object).SetResourceVersion(oldManagedObject.(controllerutil.Object).GetResourceVersion())
 
 	// Try dry-run update
 	if err := getClient().Update(context.Background(), newManagedObject, &client.UpdateOptions{
