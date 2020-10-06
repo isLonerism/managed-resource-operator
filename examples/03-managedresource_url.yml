@@ -4,4 +4,4 @@ metadata:
   name: managedresource-crd-url
 spec:
   source:
-    url: "https://raw.githubusercontent.com/vlad-pbr/managed-resource-operator/master/examples/objects/apiextensions_v1beta1_tests.example.com.yaml"
+    url: "https://raw.githubusercontent.com/vlad-pbr/managed-resource-operator/1.0.0/examples/objects/apiextensions_v1beta1_tests.example.com.yaml"

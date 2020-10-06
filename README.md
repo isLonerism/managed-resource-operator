@@ -45,7 +45,7 @@ metadata:
   name: managedresource-tests.example.com
 spec:
   source:
-    url: "https://raw.githubusercontent.com/vlad-pbr/managed-resource-operator/master/examples/objects/apiextensions_v1beta1_tests.example.com.yaml"
+    url: "https://raw.githubusercontent.com/vlad-pbr/managed-resource-operator/1.0.0/examples/objects/apiextensions_v1beta1_tests.example.com.yaml"
 ```
 
 - Embedded resource:
@@ -132,7 +132,7 @@ This assumes your cluster is connected to the Internet.
 This assumes your cluster does not have direct connection to the Internet.
 
 1. Clone/Download this repostory
-2. `docker pull` and `docker save` the operator image (`docker.io/vladpbr/managed-resource-operator:latest`) and kube-rbac-proxy image (`gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0`)
+2. `docker pull` and `docker save` the operator image (`docker.io/vladpbr/managed-resource-operator:1.0.0`) and kube-rbac-proxy image (`gcr.io/kubebuilder/kube-rbac-proxy:v0.5.0`)
 3. Transfer the repository folder and the saved images to your target network
 4. Push the operator and kube-rbac-proxy images to a disconnected image registry
 5. Unpack the repository on a disconnected machine logged-in to the cluster and `cd` to that directory
@@ -149,4 +149,4 @@ envsubst < deploy/bundle.yaml | kubectl create -f -
 
 The Managed Resource Operator is released under the Apache 2.0 license. See the [LICENSE][license_file] file for details.
 
-[license_file]:https://github.com/vlad-pbr/managed-resource-operator/blob/master/LICENSE
+[license_file]:https://github.com/vlad-pbr/managed-resource-operator/blob/1.0.0/LICENSE
