@@ -235,11 +235,6 @@ func (r *ManagedResource) ValidateUpdate(old runtime.Object) error {
 		return err
 	}
 
-	// Check update permissions
-	if err := checkPermissions(oldManagedResourceStruct, utils.Namespace(r.Namespace), utils.VerbUpdate); err != nil {
-		return err
-	}
-
 	// Ensure that the structs are equal
 	if !reflect.DeepEqual(newManagedResourceStruct, oldManagedResourceStruct) {
 		return errors.New("new managed resource must manage the same object as the old managed resource")

@@ -28,7 +28,6 @@ const (
 // Valid verbs for managed resource bindings
 const (
 	VerbCreate = "create"
-	VerbUpdate = "update"
 	VerbDelete = "delete"
 )
 
@@ -44,7 +43,7 @@ var ManagedResourceAnnotation = "managedresources.paas.il/owner"
 type Namespace string
 
 // Verb is an alias for a permission verb string
-// +kubebuilder:validation:Enum=create;update;delete
+// +kubebuilder:validation:Enum=create;delete
 type Verb string
 
 // MetadataStruct is a stripped metadata object

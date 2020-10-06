@@ -77,7 +77,6 @@ spec:
                       description: Verb is an alias for a permission verb string
                       enum:
                       - create
-                      - update
                       - delete
                       type: string
                     minItems: 1

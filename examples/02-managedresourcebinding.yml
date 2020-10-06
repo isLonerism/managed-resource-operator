@@ -10,7 +10,6 @@ spec:
         name: tests.example.com
     verbs:
     - create
-    - update
     - delete
   - object:
       kind: ConfigMap
@@ -19,7 +18,6 @@ spec:
         namespace: default
     verbs:
     - create
-    - update
     - delete
   namespaces:
   - "*"
