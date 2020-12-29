@@ -440,6 +440,11 @@ spec:
         - --enable-leader-election
         command:
         - /manager
+        env:
+        - name: HTTP_INSECURE
+          value: "false"
+        - name: HTTP_TIMEOUT
+          value: "10"
         image: docker.io/vladpbr/managed-resource-operator:latest
         name: manager
         ports:

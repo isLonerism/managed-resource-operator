@@ -105,6 +105,15 @@ The following ManagedResourceBinding defines two rules:
 
 Any field within the 'object' field as well as the 'namespaces' field can either be a specific value or a wildcard value.
 
+## Configuration
+
+Operator can be configured using the following environment variables:
+
+- **RECONCILIATION_INTERVAL_MS**: (int) reconciliation interval (in milliseconds) for the operator
+- **HTTP_INSECURE**: (bool) allow insecure server connections when using the URL source type
+- **HTTP_TIMEOUT**: (int) timeout (in seconds) of a request when using the URL source type
+- **HTTP_CA_BUNDLE_PATH**: (string) path to a local certificate bundle to trust when using the URL source type (use a configmap to map your bundle to the pod)
+
 ## A word of caution
 
 The operator effectively bypasses the RBAC permissions defined within Kubernetes. It's strongly discouraged to grant permissions for kinds such as "RoleBinding", "ClusterRoleBinding" or any other resource related to actual RBAC permissions. In addition, it's generally not recommended to set a wildcard value to 'kind' and 'namespace' fields. Permission problems are better solved using conventional RBAC permissions, only use ManagedResource as a last resort.
@@ -112,8 +121,9 @@ The operator effectively bypasses the RBAC permissions defined within Kubernetes
 ## Deployment
 
 Deploying Managed Resource Operator within your cluster is pretty straightforward. Note:
-- The operator will need to be deployed in the **managed-resource-operator-system** namespace.
+- The operator will need to be deployed in the **managed-resource-operator-system** namespace
 - `make deploy` and `make certs` commands will attempt to **create and sign the webhook certificate using your cluster's CA**
+  - You can prefix the `make certs` command with `SELF_SIGNED=true` in order to generate a self signed certificate instead
 
 #### Prerequisites
 
