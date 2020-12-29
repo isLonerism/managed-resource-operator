@@ -123,7 +123,7 @@ The operator effectively bypasses the RBAC permissions defined within Kubernetes
 Deploying Managed Resource Operator within your cluster is pretty straightforward. Note:
 - The operator will need to be deployed in the **managed-resource-operator-system** namespace
 - `make deploy` and `make certs` commands will attempt to **create and sign the webhook certificate using your cluster's CA**
-  - You can prefix the `make certs` command with `SELF_SIGNED=true` in order to generate a self signed certificate instead
+  - You can prefix these commands with `SELF_SIGNED=true` in order to generate a self signed certificate instead
 
 #### Prerequisites
 
