@@ -4,15 +4,30 @@
 mkdir -p config/webhook/certs
 rm -rf config/webhook/certs/*
 
-# generate request and key
-openssl req -nodes -newkey rsa:2048 \
--keyout config/webhook/certs/tls.key \
--out config/webhook/certs/tls.csr \
--config ./cert/req.conf
+if [ "$SELF_SIGNED" == "true" ]
+then
 
-# create k8s request
-CSR_BASE64=$(cat config/webhook/certs/tls.csr | base64 -w0)
-CSR_REQUEST="\
+  # generate self signed certificate
+  openssl req -nodes -newkey rsa:4096 \
+  -keyout config/webhook/certs/tls.key \
+  -out config/webhook/certs/tls.crt \
+  -config ./cert/req.conf \
+  -x509 -days 36500
+
+  # encode and save as webhook CA
+  cat config/webhook/certs/tls.crt | base64 -w0 > config/webhook/certs/ca.pem.b64
+
+else
+
+  # generate request and key
+  openssl req -nodes -newkey rsa:2048 \
+  -keyout config/webhook/certs/tls.key \
+  -out config/webhook/certs/tls.csr \
+  -config ./cert/req.conf
+
+  # create k8s request
+  CSR_BASE64=$(cat config/webhook/certs/tls.csr | base64 -w0)
+  CSR_REQUEST="\
 apiVersion: certificates.k8s.io/v1beta1\n\
 kind: CertificateSigningRequest\n\
 metadata:\n\
@@ -26,16 +41,18 @@ spec:\n\
   - key encipherment\n\
   - server auth\n"
 
-# sign the request
-kubectl delete csr managed-resource-webhooks 2> /dev/null
-echo -ne $CSR_REQUEST | kubectl create -f -
-kubectl certificate approve managed-resource-webhooks
+  # sign the request
+  kubectl delete csr managed-resource-webhooks 2> /dev/null
+  echo -ne $CSR_REQUEST | kubectl create -f -
+  kubectl certificate approve managed-resource-webhooks
 
-# await certificate approval
-while [ "$(kubectl get csr managed-resource-webhooks -o jsonpath='{.status.certificate}' | base64 --decode | tee config/webhook/certs/tls.crt)" == "" ]
-do
-  sleep 1
-done
+  # await certificate approval
+  while [ "$(kubectl get csr managed-resource-webhooks -o jsonpath='{.status.certificate}' | base64 --decode | tee config/webhook/certs/tls.crt)" == "" ]
+  do
+    sleep 1
+  done
 
-# store cluster ca certificate
-kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 -w0 > config/webhook/certs/ca.pem.b64
+  # store cluster ca certificate
+  kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 -w0 > config/webhook/certs/ca.pem.b64
+
+fi
