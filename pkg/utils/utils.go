@@ -1,10 +1,14 @@
 package utils
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"reflect"
+	"strconv"
 	"time"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -110,9 +114,52 @@ func getManagedResourceBytes(sourceStruct SourceStruct) ([]byte, error) {
 
 func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 
+	// Parse HTTP_INSECURE environment variable
+	HTTP_INSECURE_STR, ok := os.LookupEnv("HTTP_INSECURE")
+	if !ok {
+		HTTP_INSECURE_STR = "false"
+	}
+	HTTP_INSECURE, err := strconv.ParseBool(HTTP_INSECURE_STR)
+	if err != nil {
+		return nil, errors.New("an error occurred while parsing HTTP_INSECURE environment variable: " + err.Error())
+	}
+
+	// Parse HTTP_TIMEOUT environment variable
+	HTTP_TIMEOUT_STR, ok := os.LookupEnv("HTTP_TIMEOUT")
+	if !ok {
+		HTTP_TIMEOUT_STR = "10"
+	}
+	HTTP_TIMEOUT, err := strconv.ParseInt(HTTP_TIMEOUT_STR, 10, 64)
+	if err != nil {
+		return nil, errors.New("an error occurred while parsing HTTP_TIMEOUT environment variable: " + err.Error())
+	}
+
+	// Define new TLS config
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: HTTP_INSECURE,
+		RootCAs:            x509.NewCertPool(),
+	}
+
+	// Read and use the CA bundle if present
+	HTTP_CA_BUNDLE_PATH, ok := os.LookupEnv("HTTP_CA_BUNDLE_PATH")
+	if ok {
+
+		// Read CA bundle
+		CABundle, err := ioutil.ReadFile(HTTP_CA_BUNDLE_PATH)
+		if err != nil {
+			return nil, errors.New("an error occurred while reading CA bundle: " + err.Error())
+		}
+
+		// Add bundle to trusted CAs
+		tlsConfig.RootCAs.AppendCertsFromPEM(CABundle)
+	}
+
 	// HTTP client with timeout
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: time.Duration(HTTP_TIMEOUT) * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
 	}
 
 	// Get resource yaml from remote

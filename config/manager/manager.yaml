@@ -36,4 +36,9 @@ spec:
           requests:
             cpu: 100m
             memory: 20Mi
+        env:
+        - name: HTTP_INSECURE
+          value: "false"
+        - name: HTTP_TIMEOUT
+          value: "10"
       terminationGracePeriodSeconds: 10
