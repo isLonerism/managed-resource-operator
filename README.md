@@ -70,6 +70,30 @@ spec:
 
 After initial creation of the resource, no matter which method was specified, the resource will use the embedded resource format. Further editing of the object can be achieved by applying the same ManagedResource with an updated URL/YAML/Object or by directly editing the ManagedResource. Upon deletion of ManagedResource, its managed object is deleted as well.
 
+In addition, `.spec.overwrite` field may be useful when planning your Continuous Deployment strategy. Data defined within this field will directly overwrite the fields of the resource specified by `.spec.source` field. This might help you in the following scenarios:
+
+- You need to add additional fields to your resource based on the strategy
+- You want to make sure the resource always conforms to a standard you defined
+- You want to ensure your resource's fields always stay the same (like `.metadata.name` or `.metadata.namespace`)
+
+Here is an example of an overwrite:
+
+``` yaml
+apiVersion: paas.il/v1beta1
+kind: ManagedResource
+metadata:
+  name: managedresource-cm-overwrite-example
+spec:
+  source:
+    url: "https://raw.githubusercontent.com/vlad-pbr/managed-resource-operator/master/examples/objects/v1_random-configmap.yaml"
+  overwrite:
+    metadata:
+      name: overwritten-configmap-name
+      namespace: default
+```
+
+This overwrite ensures that both `.metadata.name` and `.metadata.namespace` fields of a resource retrieved from the URL are 'overwritten-configmap-name' and 'default' respectively, even when these fields were not previously defined.
+
 ### ManagedResourceBinding
 
 ManagedResourceBinding resides at the cluster scope and lets cluster administrators define fine grained permissions for resource creation. For example:
