@@ -70,6 +70,8 @@ spec:
 
 After initial creation of the resource, no matter which method was specified, the resource will use the embedded resource format. Further editing of the object can be achieved by applying the same ManagedResource with an updated URL/YAML/Object or by directly editing the ManagedResource. Upon deletion of ManagedResource, its managed object is deleted as well.
 
+#### Overwrite field
+
 In addition, `.spec.overwrite` field may be useful when planning your Continuous Deployment strategy. Data defined within this field will directly overwrite the fields of the resource specified by `.spec.source` field. This might help you in the following scenarios:
 
 - You need to add additional fields to your resource based on the strategy
