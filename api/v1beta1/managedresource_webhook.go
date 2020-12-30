@@ -146,6 +146,15 @@ func (r *ManagedResource) Default() {
 		return
 	}
 
+	// Overwrite metadata fields if overwrite is present
+	managedResourceBytes, err = utils.ProcessOverwrite(managedResourceBytes, r.Spec.Overwrite)
+	if err != nil {
+		return
+	}
+
+	// Empty overwrite field
+	r.Spec.Overwrite.Raw = nil
+
 	// Convert YAML bytes to JSON bytes for raw extension
 	managedResourceBytesJSON, err := yaml.YAMLToJSON(managedResourceBytes)
 	if err != nil {

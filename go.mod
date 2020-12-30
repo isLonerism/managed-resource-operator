@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/fatih/structs v1.1.0
 	github.com/go-logr/logr v0.1.0
+	github.com/imdario/mergo v0.3.9
 	github.com/jeremywohl/flatten v1.0.1
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1

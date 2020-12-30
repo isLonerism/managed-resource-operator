@@ -1,0 +1,18 @@
+apiVersion: paas.il/v1beta1
+kind: ManagedResource
+metadata:
+  name: managedresource-cm-object-overwrite
+spec:
+  source:
+    object:
+      apiVersion: v1
+      kind: ConfigMap
+      data:
+        data-1: value-1
+        data-2: value-2
+      metadata:
+        name: original-configmap-name
+        namespace: default
+  overwrite:
+    metadata:
+      name: overwritten-configmap-name

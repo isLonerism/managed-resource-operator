@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/imdario/mergo"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	kubeyaml "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
@@ -225,4 +227,38 @@ func ProcessSource(source SourceStruct) ([]byte, *ManagedResourceStruct, runtime
 	}
 
 	return managedResourceBytes, managedResourceStruct, managedObject, managedObjectKey, nil
+}
+
+// ProcessOverwrite merges resource and overwrite fields
+func ProcessOverwrite(managedResourceBytes []byte, overwrite runtime.RawExtension) ([]byte, error) {
+
+	// Do not overwrite if there is nothing to overwrite with
+	if overwrite.Raw == nil {
+		return managedResourceBytes, nil
+	}
+
+	// Define empty maps for resource and overwrite
+	var managedResourceMap map[string]interface{}
+	var overwriteMap map[string]interface{}
+
+	// Unmarshal both objects to their maps
+	if err := yaml.Unmarshal(managedResourceBytes, &managedResourceMap); err != nil {
+		return nil, errors.New("an error occurred while trying to unmarshal resource: " + err.Error())
+	}
+	if err := json.Unmarshal(overwrite.Raw, &overwriteMap); err != nil {
+		return nil, errors.New("an error occurred while trying to unmarshal overwrite: " + err.Error())
+	}
+
+	// Union merge maps with overwrite
+	if err := mergo.MergeWithOverwrite(&managedResourceMap, overwriteMap); err != nil {
+		return nil, errors.New("an error occurred while trying to overwrite parameters: " + err.Error())
+	}
+
+	// Marshal final resource as bytes
+	managedResourceBytesOverwrite, err := yaml.Marshal(managedResourceMap)
+	if err != nil {
+		return nil, errors.New("an error occurred while trying to marshal overwritten resource: " + err.Error())
+	}
+
+	return managedResourceBytesOverwrite, nil
 }

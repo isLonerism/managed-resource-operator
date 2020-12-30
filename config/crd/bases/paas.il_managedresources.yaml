@@ -46,6 +46,10 @@ spec:
         spec:
           description: ManagedResourceSpec defines the desired state of ManagedResource
           properties:
+            overwrite:
+              nullable: true
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
             source:
               description: SourceStruct defines options to supply the managed object
                 code

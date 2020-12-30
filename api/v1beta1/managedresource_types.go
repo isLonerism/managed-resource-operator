@@ -18,6 +18,7 @@ package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 
 	"operator/pkg/utils"
 )
@@ -25,6 +26,10 @@ import (
 // ManagedResourceSpec defines the desired state of ManagedResource
 type ManagedResourceSpec struct {
 	Source utils.SourceStruct `json:"source"`
+
+	// +kubebuilder:validation:XPreserveUnknownFields
+	// +nullable
+	Overwrite runtime.RawExtension `json:"overwrite,omitempty"`
 }
 
 // ManagedResourceStatus defines the observed state of ManagedResource
