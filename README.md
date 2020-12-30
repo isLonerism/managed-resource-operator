@@ -94,7 +94,7 @@ spec:
       namespace: default
 ```
 
-This overwrite ensures that both `.metadata.name` and `.metadata.namespace` fields of a resource retrieved from the URL are '__overwritten-configmap-name__' and '__default__' respectively, even if these fields were not previously defined.
+This overwrite ensures that both `.metadata.name` and `.metadata.namespace` fields of a resource retrieved from the URL are '__overwritten-configmap-name__' and '__default__' respectively, even if these fields were not previously defined. Once the object is created, the overwrite will be applied and then removed from the object.
 
 ### ManagedResourceBinding
 
