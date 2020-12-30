@@ -39,8 +39,9 @@ type ManagedResourceStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName=mr,scope=Namespaced
-// +kubebuilder:printcolumn:name="Kind",type=string,JSONPath=`.spec.source.object.kind`
-// +kubebuilder:printcolumn:name="Namespace",type=string,JSONPath=`.spec.source.object.metadata.namespace`
+// +kubebuilder:printcolumn:name="Resource name",type=string,JSONPath=`.spec.source.object.metadata.name`
+// +kubebuilder:printcolumn:name="Resource kind",type=string,JSONPath=`.spec.source.object.kind`
+// +kubebuilder:printcolumn:name="Resource namespace",type=string,JSONPath=`.spec.source.object.metadata.namespace`
 
 // ManagedResource is the Schema for the managedresources API
 type ManagedResource struct {
