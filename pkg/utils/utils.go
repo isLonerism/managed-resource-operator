@@ -136,10 +136,16 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 		return nil, errors.New("an error occurred while parsing HTTP_TIMEOUT environment variable: " + err.Error())
 	}
 
+	// Get pool of certificates the system trusts
+	systemCertPool, err := x509.SystemCertPool()
+	if err != nil {
+		return nil, errors.New("an error occurred while retrieving system certificate pool: " + err.Error())
+	}
+
 	// Define new TLS config
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: HTTP_INSECURE,
-		RootCAs:            x509.NewCertPool(),
+		RootCAs:            systemCertPool,
 	}
 
 	// Read and use the CA bundle if present
@@ -153,7 +159,9 @@ func getManagedResourceBytesByURL(sourceStruct SourceStruct) ([]byte, error) {
 		}
 
 		// Add bundle to trusted CAs
-		tlsConfig.RootCAs.AppendCertsFromPEM(CABundle)
+		if ok := tlsConfig.RootCAs.AppendCertsFromPEM(CABundle); !ok {
+			return nil, errors.New("an error occurred while appeding CA bundle to trusted certificate pool: " + err.Error())
+		}
 	}
 
 	// HTTP client with timeout
