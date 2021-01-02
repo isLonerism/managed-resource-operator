@@ -130,11 +130,14 @@ metadata:
   name: managedresources.paas.il
 spec:
   additionalPrinterColumns:
+  - JSONPath: .spec.source.object.metadata.name
+    name: Resource name
+    type: string
   - JSONPath: .spec.source.object.kind
-    name: Kind
+    name: Resource kind
     type: string
   - JSONPath: .spec.source.object.metadata.namespace
-    name: Namespace
+    name: Resource namespace
     type: string
   group: paas.il
   names:
@@ -167,6 +170,10 @@ spec:
         spec:
           description: ManagedResourceSpec defines the desired state of ManagedResource
           properties:
+            overwrite:
+              nullable: true
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
             source:
               description: SourceStruct defines options to supply the managed object
                 code
@@ -367,7 +374,7 @@ data:
   ca.pem.b64: ${WEBHOOK_CA_BASE64}
 kind: ConfigMap
 metadata:
-  name: managed-resource-operator-ca-cert-46f22d7dk2
+  name: managed-resource-operator-ca-cert-bkkf5hd6b5
   namespace: managed-resource-operator-system
 ---
 apiVersion: v1
@@ -376,7 +383,7 @@ data:
   tls.key: ${WEBHOOK_TLS_KEY_BASE64}
 kind: Secret
 metadata:
-  name: managed-resource-operator-webhook-server-cert-hm6h9t7ch5
+  name: managed-resource-operator-webhook-server-cert-fd87886dbc
   namespace: managed-resource-operator-system
 type: kubernetes.io/tls
 ---
@@ -467,7 +474,7 @@ spec:
       - name: cert
         secret:
           defaultMode: 420
-          secretName: managed-resource-operator-webhook-server-cert-hm6h9t7ch5
+          secretName: managed-resource-operator-webhook-server-cert-fd87886dbc
 ---
 apiVersion: admissionregistration.k8s.io/v1beta1
 kind: ValidatingWebhookConfiguration
