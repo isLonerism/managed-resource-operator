@@ -452,7 +452,7 @@ spec:
           value: "false"
         - name: HTTP_TIMEOUT
           value: "10"
-        image: docker.io/vladpbr/managed-resource-operator:latest
+        image: docker.io/vladpbr/managed-resource-operator:1.1.0
         name: manager
         ports:
         - containerPort: 9443

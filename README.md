@@ -185,4 +185,4 @@ envsubst < deploy/bundle.yaml | kubectl create -f -
 
 The Managed Resource Operator is released under the Apache 2.0 license. See the [LICENSE][license_file] file for details.
 
-[license_file]:https://github.com/vlad-pbr/managed-resource-operator/blob/master/LICENSE
+[license_file]:https://github.com/vlad-pbr/managed-resource-operator/blob/1.1.0/LICENSE
